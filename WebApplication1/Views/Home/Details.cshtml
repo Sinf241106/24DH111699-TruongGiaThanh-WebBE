@@ -1,0 +1,235 @@
+﻿@* --- (RẤT QUAN TRỌNG) Đổi Model sang ViewModel mới --- *@
+@model WebApplication1.Models.ProductDetailViewModel
+
+@{
+    ViewBag.Title = Model.MainProduct.ProductName; // Đặt tiêu đề là tên sản phẩm
+}
+
+@* --- Thêm CSS cho bố cục mới --- *@
+<style>
+    .product-details-img {
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        object-fit: contain;
+    }
+
+    .product-price-details {
+        font-size: 2.5em; /* Phóng to giá tiền */
+        color: #c00;
+        font-weight: 700;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    /* --- (MỚI) CSS CHO CỘT BÊN PHẢI (để cuộn dọc) --- */
+    .sidebar-wrapper {
+        border: 1px solid #eee;
+        border-radius: 4px;
+        padding: 15px;
+        background-color: #f9f9f9; /* Thêm màu nền nhẹ */
+    }
+
+        .sidebar-wrapper h4 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+    .sidebar-scrollable-list {
+        /* Đặt chiều cao tối đa mà bạn muốn, VÍ DỤ 500px */
+        /* Cột này sẽ cao tối đa 500px và cuộn nếu nhiều hơn 10 sản phẩm */
+        max-height: 500px;
+        overflow-y: auto; /* Bật thanh cuộn dọc */
+        overflow-x: hidden; /* Ẩn thanh cuộn ngang */
+        padding-right: 10px; /* Thêm padding để thanh cuộn không đè nội dung */
+    }
+
+    .sidebar-product-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar-product-item {
+        display: flex;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+    }
+        /* Xóa border của item cuối cùng */
+        .sidebar-product-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .sidebar-product-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-right: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        .sidebar-product-item .info {
+            font-size: 0.9em;
+            flex: 1; /* Để tên sản phẩm tự động xuống hàng nếu quá dài */
+        }
+
+            .sidebar-product-item .info a {
+                font-weight: bold;
+                color: #333;
+                text-decoration: none;
+            }
+
+            .sidebar-product-item .info .price {
+                color: #c00;
+            }
+
+    /* --- (MỚI) CSS CHO THANH CUỘN NGANG (Sản phẩm tương tự) --- */
+    .horizontal-scroll-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 15px 0;
+    }
+
+    .items-container {
+        white-space: nowrap;
+    }
+
+    .product-card-inline {
+        display: inline-block;
+        width: 250px; /* Thu nhỏ card lại một chút */
+        white-space: normal;
+        vertical-align: top;
+        margin-right: 15px;
+    }
+
+        .product-card-inline .thumbnail {
+            height: 360px; /* Thu nhỏ chiều cao */
+            margin-bottom: 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+        }
+
+            .product-card-inline .thumbnail img {
+                height: 180px; /* Ảnh nhỏ hơn */
+            }
+</style>
+
+
+@* (MỚI) Bố cục tổng: 2 cột (9 cho nội dung chính, 3 cho sidebar) *@
+<div class="row">
+
+    @* --- BẮT ĐẦU CỘT CHÍNH (BÊN TRÁI) --- *@
+    <div class="col-md-9">
+
+        @* --- PHẦN 1: CHI TIẾT SẢN PHẨM CHÍNH --- *@
+        <div class="row" style="margin-bottom: 30px;">
+
+            @* Cột ảnh *@
+            <div class="col-md-5">
+                @if (!string.IsNullOrEmpty(Model.MainProduct.ProductImage))
+                {
+                    <img src="@Url.Content(Model.MainProduct.ProductImage)" alt="@Model.MainProduct.ProductName" class="product-details-img" />
+                }
+                else
+                {
+                    <img src="https://via.placeholder.com/400x400.png?text=No+Image" alt="No Image" class="product-details-img" />
+                }
+            </div>
+
+            @* Cột thông tin *@
+            <div class="col-md-7">
+                <h2>@Html.DisplayFor(model => model.MainProduct.ProductName)</h2>
+                <p style="color: #777;">
+                    <strong>Danh mục:</strong>
+                    @Html.DisplayFor(model => model.MainProduct.Category.CategoryName)
+                </p>
+                <hr />
+                <p>@Html.DisplayFor(model => model.MainProduct.ProductDescription)</p>
+                <div class="product-price-details">
+                    @string.Format("{0:N0}", Model.MainProduct.ProductPrice) đ
+                </div>
+                <p>
+                    @* --- (ĐÃ SỬA LINK NÀY) --- *@
+                    <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = Model.MainProduct.ProductID })" class="btn btn-primary btn-lg">Thêm vào giỏ hàng</a>
+                </p>
+            </div>
+        </div>
+
+        @* --- PHẦN 2: SẢN PHẨM TƯƠNG TỰ (CUỘN NGANG) --- *@
+        <hr />
+        <h3>Sản phẩm tương tự</h3>
+        <div class="horizontal-scroll-wrapper">
+            <div class="items-container">
+                @foreach (var item in Model.SimilarProducts)
+                {
+                    <div class="product-card-inline">
+                        <div class="thumbnail">
+                            <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">
+                                <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/200x200.png?text=No+Image")" alt="@item.ProductName" style="width: 100%; object-fit: contain;">
+
+                            </a>
+                            <div class="caption">
+                                <h4 style="height: 40px; overflow: hidden; font-weight: bold;">
+                                    <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">@item.ProductName</a>
+                                </h4>
+                                <p style="font-size: 1.3em; color: #c00;">
+                                    <strong>@string.Format("{0:N0}", item.ProductPrice) đ</strong>
+                                </p>
+                                <p>
+                                    @* --- (ĐÃ SỬA LINK NÀY) --- *@
+                                    <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = item.ProductID })" class="btn btn-primary" role="button">Thêm vào giỏ</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+    @* --- HẾT CỘT CHÍNH --- *@
+
+
+    @* --- BẮT ĐẦU CỘT PHỤ (BÊN PHẢI) VỚI THANH CUỘN --- *@
+    <div class="col-md-3">
+        <div class="sidebar-wrapper">
+            <h4>Sản phẩm bán chạy</h4>
+
+            @* (MỚI) Lớp bọc có thanh cuộn *@
+            <div class="sidebar-scrollable-list">
+                <ul class="sidebar-product-list">
+                    @foreach (var item in Model.BestSellingProducts)
+                    {
+                        <li class="sidebar-product-item">
+                            <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">
+                                <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/60x60.png?text=No+Image")" alt="@item.ProductName" />
+                            </a>
+                            <div class="info">
+                                <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">@item.ProductName</a>
+                                <div class="price">@string.Format("{0:N0}", item.ProductPrice) đ</div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+    @* --- HẾT CỘT PHỤ --- *@
+
+</div>
+@* --- HẾT BỐ CỤC TỔNG --- *@
+
+
+<hr />
+<p>
+    @Html.ActionLink("Quay lại trang chủ", "Index", "Home", null, new { @class = "btn btn-secondary" })
+</p>

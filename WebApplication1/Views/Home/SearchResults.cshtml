@@ -1,0 +1,131 @@
+﻿@model PagedList.IPagedList<WebApplication1.Models.Product>
+@using PagedList.Mvc;
+
+@{
+    ViewBag.Title = "Kết quả tìm kiếm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@* --- CSS TÙY CHỈNH (Giống hệt file Index.cshtml) --- *@
+<style>
+    .product-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        margin-bottom: 25px;
+        background-color: #fff;
+        transition: box-shadow 0.3s ease;
+    }
+
+        .product-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* CSS cho ảnh và tên sản phẩm khi là link */
+        .product-card a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+            .product-card a:hover .product-name {
+                color: #007bff; /* Đổi màu tên khi hover */
+            }
+
+            .product-card a img {
+                transition: opacity 0.2s ease;
+            }
+
+            .product-card a:hover img {
+                opacity: 0.85;
+            }
+
+        .product-card img {
+            width: 100%;
+            height: 300px; /* Cố định chiều cao ảnh */
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .product-card .product-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: 15px;
+            height: 48px;
+            overflow: hidden;
+        }
+
+        .product-card .product-price {
+            color: #d9534f;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+    .pagination-container {
+        text-align: center;
+    }
+</style>
+@* --- HẾT CSS --- *@
+
+
+@* --- HIỂN THỊ KẾT QUẢ TÌM KIẾM --- *@
+<div class="row">
+    <div class="col-md-12">
+        <h2 style="font-weight: bold; margin-bottom: 20px;">
+            Kết quả tìm kiếm cho: "@ViewBag.SearchKey"
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    @if (!Model.Any())
+    {
+        <div class="col-md-12">
+            <div class="alert alert-warning">Không tìm thấy sản phẩm nào phù hợp.</div>
+        </div>
+    }
+    else
+    {
+        foreach (var item in Model)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="product-card">
+
+                    @* --- SỬA 1: BỌC HÌNH ẢNH BẰNG THẺ LINK ĐẾN TRANG CHI TIẾT --- *@
+                    <a href="@Url.Action("Details", "Products", new { id = item.ProductID })" title="@item.ProductName">
+                        @if (!string.IsNullOrEmpty(item.ProductImage))
+                        {
+                            <img src="@Url.Content(item.ProductImage)" alt="@item.ProductName" />
+                        }
+                    </a>
+
+                    <h4 class="product-name">
+                        <a href="@Url.Action("Details", "Products", new { id = item.ProductID })">
+                            @item.ProductName
+                        </a>
+                    </h4>
+
+                    <p class="product-price">
+                        @String.Format("{0:N0} đ", item.ProductPrice)
+                    </p>
+
+                    @* --- SỬA 2: ĐỔI NÚT "XEM CHI TIẾT" THÀNH NÚT "THÊM VÀO GIỎ" --- *@
+                    <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = item.ProductID })" class="btn btn-success">
+                        Thêm vào giỏ
+                    </a>
+
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@* --- PHẦN PHÂN TRANG (NÚT 1, 2...) --- *@
+<div class="row">
+    <div class="col-md-12 pagination-container">
+        @Html.PagedListPager(Model, page => Url.Action("Search",
+            new { page = page, searchString = ViewBag.SearchKey }),
+            PagedListRenderOptions.Classic)
+    </div>
+</div>

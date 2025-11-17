@@ -1,0 +1,136 @@
+﻿@* --- (RẤT QUAN TRỌNG) Khai báo Model là PagedList --- *@
+@using WebApplication1.Models
+@using PagedList.Mvc
+@model PagedList.IPagedList<Product>
+
+@{
+    ViewBag.Title = "Tất cả sản phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Dùng layout trang chủ
+}
+
+@* --- CSS để làm đẹp lưới sản phẩm (Giống code cũ) --- *@
+<style>
+    /* --- (MỚI) CSS CHO TIÊU ĐỀ TRANG --- */
+    .page-title {
+        font-weight: 700; /* Đậm */
+        font-size: 2.2em; /* To hơn */
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee; /* Thêm đường gạch chân */
+    }
+
+    /* --- CSS CỦA THẺ SẢN PHẨM (Giữ nguyên) --- */
+    .product-card {
+        margin-bottom: 25px;
+    }
+
+        .product-card .thumbnail {
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+            .product-card .thumbnail img {
+                width: 100%;
+                height: 200px;
+                object-fit: contain;
+            }
+
+            .product-card .thumbnail .caption {
+                height: 150px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+            }
+
+                .product-card .thumbnail .caption h4 {
+                    height: 40px;
+                    overflow: hidden;
+                    font-weight: bold;
+                    margin: 5px 0;
+                }
+
+                .product-card .thumbnail .caption p.price {
+                    font-size: 1.2em;
+                    color: #c00;
+                    margin: 5px 0;
+                }
+
+    /* --- (MỚI) CSS CHO HỘP CHUYỂN TRANG --- */
+    .pagination-box {
+        text-align: center;
+        padding: 20px;
+        background-color: #f9f9f9; /* Màu nền xám nhạt */
+        border-radius: 8px; /* Bo góc */
+        border: 1px solid #eee;
+        display: inline-block; /* Chỉ bọc vừa đủ nội dung */
+    }
+
+    .pagination-container {
+        text-align: center; /* Căn giữa cái hộp */
+    }
+</style>
+
+
+@* --- (ĐÃ SỬA) TIÊU ĐỀ TRANG --- *@
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="page-title">Tất cả sản phẩm</h2>
+        <p class="lead" style="margin-top: -10px; margin-bottom: 20px;">
+            Trang @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) / @Model.PageCount
+        </p>
+    </div>
+</div>
+
+
+@* --- BẮT ĐẦU LƯỚI SẢN PHẨM --- *@
+<div class="row">
+    @foreach (var item in Model)
+    {
+        @* (col-md-3 = 4 sản phẩm/hàng) *@
+        <div class="col-md-3 col-sm-6 product-card">
+            <div class="thumbnail">
+                <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">
+                    @if (!string.IsNullOrEmpty(item.ProductImage))
+                    {
+                        <img src="@Url.Content(item.ProductImage)" alt="@item.ProductName">
+                    }
+                    else
+                    {
+                        <img src="https://via.placeholder.com/200x200.png?text=No+Image" alt="No Image">
+                    }
+                </a>
+                <div class="caption">
+                    <h4>
+                        <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">@Html.DisplayFor(modelItem => item.ProductName)</a>
+                    </h4>
+                    <p class="price">
+                        <strong>@string.Format("{0:N0}", item.ProductPrice) đ</strong>
+                    </p>
+                    <p>
+                        @* --- (ĐÃ SỬA) LINK THÊM VÀO GIỎ HÀNG --- *@
+                        <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = item.ProductID })" class="btn btn-primary" role="button">Thêm vào giỏ</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+@* --- KẾT THÚC LƯỚI SẢN PHẨM --- *@
+
+<hr />
+
+@* --- (ĐÃ SỬA) THANH CHUYỂN TRANG (ĐÃ BỌC HỘP) --- *@
+<div class="pagination-container">
+    <div class="pagination-box">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
+    </div>
+</div>
+
+@* --- Thêm CSS cho PagedList (bạn có thể dán vào Site.css) --- *@
+@Styles.Render("~/Content/PagedList.css")

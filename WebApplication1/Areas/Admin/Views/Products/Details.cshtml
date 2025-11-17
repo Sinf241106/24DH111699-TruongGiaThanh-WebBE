@@ -1,0 +1,274 @@
+﻿@model WebApplication1.Models.Product
+
+@{
+    ViewBag.Title = Model.ProductName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Lấy danh sách sản phẩm sidebar từ ViewBag
+    var sidebarProducts = ViewBag.SidebarProducts as List<WebApplication1.Models.Product>;
+}
+
+@* --- STYLE CHO TRANG CHI TIẾT VÀ SIDEBAR --- *@
+<style>
+    body {
+        background-color: #f8f8f8;
+    }
+
+    /* (CSS cho nội dung chính giữ nguyên như cũ) */
+    .details-page-container {
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .product-details-img {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        object-fit: contain;
+    }
+
+    .product-name-heading {
+        font-size: 2.2em;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    .product-category {
+        font-size: 1.1em;
+        color: #777;
+        margin-bottom: 20px;
+    }
+
+    .product-price-display {
+        font-size: 2.8em;
+        font-weight: bold;
+        color: #d9534f;
+        margin-bottom: 25px;
+    }
+
+    .product-description-content {
+        font-size: 1.05em;
+        line-height: 1.7;
+        color: #555;
+        margin-top: 20px;
+    }
+
+    .quantity-section .form-label {
+        font-weight: 600;
+        font-size: 1.1em;
+        color: #555;
+    }
+
+    .quantity-input-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+        .quantity-input-group .btn-qty {
+            width: 40px;
+            height: 40px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: 1px solid #ccc;
+            background-color: #f7f7f7;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .quantity-input-group #quantity {
+            width: 70px;
+            height: 40px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: 1px solid #ccc;
+            border-left: none;
+            border-right: none;
+            -moz-appearance: textfield;
+        }
+
+            .quantity-input-group #quantity::-webkit-outer-spin-button, .quantity-input-group #quantity::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+    .add-to-cart-btn {
+        font-size: 1.2em;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+
+    /* --- (CSS MỚI) CHO SIDEBAR BÊN PHẢI --- */
+    .sidebar-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+
+        .sidebar-container h3 {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+    .sidebar-product-item {
+        display: flex; /* Hiển thị ảnh và chữ ngang hàng */
+        margin-bottom: 20px;
+    }
+
+        .sidebar-product-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 15px;
+        }
+
+        .sidebar-product-item .info {
+            flex: 1;
+        }
+
+            .sidebar-product-item .info a {
+                font-size: 1.05em;
+                font-weight: 600;
+                color: #333;
+                text-decoration: none;
+                /* Giới hạn tên 2 dòng */
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+                .sidebar-product-item .info a:hover {
+                    color: #007bff;
+                }
+
+            .sidebar-product-item .info .price {
+                font-size: 1.1em;
+                font-weight: bold;
+                color: #d9534f;
+                margin-top: 5px;
+            }
+</style>
+
+@* --- CẤU TRÚC LAYOUT MỚI (8 - 4) --- *@
+<div class="container" style="margin-top: 30px; margin-bottom: 30px;">
+    <div class="row">
+
+        <div class="col-lg-8">
+            <div class="details-page-container">
+                <div class="row">
+                    <div class="col-md-6">
+                        @if (!string.IsNullOrEmpty(Model.ProductImage))
+                        {
+                            <img src="@Url.Content(Model.ProductImage)" alt="@Model.ProductName" class="product-details-img img-fluid" />
+                        }
+                        else
+                        {
+                            <img src="https://via.placeholder.com/500x500.png?text=No+Image" alt="Không có ảnh" class="product-details-img img-fluid" />
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        <h1 class="product-name-heading">@Model.ProductName</h1>
+                        <p class="product-category">
+                            Danh mục: @(Model.Category != null ? Model.Category.CategoryName : "N/A")
+                        </p>
+                        <div class="product-price-display">
+                            @String.Format("{0:N0} đ", Model.ProductPrice)
+                        </div>
+                        <hr />
+
+                        <form action="@Url.Action("AddToCart", "ShoppingCart")" method="post">
+                            <input type="hidden" name="id" value="@Model.ProductID" />
+                            <div class="form-group quantity-section">
+                                <label class="form-label">Số lượng:</label>
+                                <div class="quantity-input-group">
+                                    <button type="button" class="btn-qty" id="btn-minus" style="border-radius: 5px 0 0 5px;">-</button>
+                                    <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="99" />
+                                    <button type="button" class="btn-qty" id="btn-plus" style="border-radius: 0 5px 5px 0;">+</button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success add-to-cart-btn">
+                                Thêm vào giỏ hàng
+                            </button>
+                        </form>
+                    </div>
+                </div> <hr />
+
+                <div classs="row">
+                    <div class="col-12">
+                        <div class="product-description-section">
+                            <h3 style="font-weight: 600;">Mô tả sản phẩm</h3>
+                            <div class="product-description-content">
+                                @Html.Raw(Model.ProductDescription.Replace(Environment.NewLine, "<br/>"))
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <div class="col-lg-4">
+            <div class="sidebar-container">
+                <h3>Sản phẩm khác</h3>
+
+                @if (sidebarProducts != null && sidebarProducts.Any())
+                {
+                    foreach (var item in sidebarProducts)
+                    {
+                        <div class="sidebar-product-item">
+                            <a href="@Url.Action("Details", "Products", new { id = item.ProductID })">
+                                <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/80x80.png?text=No+Image")" alt="@item.ProductName" />
+                            </a>
+                            <div class="info">
+                                <a href="@Url.Action("Details", "Products", new { id = item.ProductID })" title="@item.ProductName">
+                                    @item.ProductName
+                                </a>
+                                <div class="price">@String.Format("{0:N0} đ", item.ProductPrice)</div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Không có sản phẩm nào khác để hiển thị.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div> @* --- SCRIPT CHO CHỨC NĂNG TĂNG/GIẢM SỐ LƯỢNG --- *@
+@* (Không thay đổi, giữ nguyên như cũ) *@
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#btn-minus').click(function () {
+                var quantityInput = $('#quantity');
+                var currentValue = parseInt(quantityInput.val());
+                if (currentValue > 1) {
+                    quantityInput.val(currentValue - 1);
+                }
+            });
+
+            $('#btn-plus').click(function () {
+                var quantityInput = $('#quantity');
+                var currentValue = parseInt(quantityInput.val());
+                quantityInput.val(currentValue + 1);
+            });
+
+            $('#quantity').on('change', function () {
+                var currentValue = parseInt($(this).val());
+                if (isNaN(currentValue) || currentValue < 1) {
+                    $(this).val(1);
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,60 @@
+﻿@* Khai báo model là một danh sách Product *@
+@model IEnumerable<WebApplication1.Models.Product>
+
+@{
+    ViewBag.Title = "Trang chủ";
+}
+
+@* (TÙY CHỌN) Bạn có thể giữ lại khối "Chào mừng" nếu muốn *@
+<div class="jumbotron">
+    <h1>Chào mừng đến trang SinfStore</h1>
+    <p class="lead">Mua sắm trực tuyến với hàng ngàn sản phẩm đa dạng và chất lượng</p>
+    <p><a href="#" class="btn btn-primary btn-lg">Bắt đầu mua sắm &raquo;</a></p>
+</div>
+
+<hr />
+
+@* Hiển thị sản phẩm dạng lưới (Grid) *@
+<div class="row">
+
+    @* Lặp qua từng sản phẩm trong Model *@
+    @foreach (var item in Model)
+    {
+        <div class="col-md-3 col-sm-6" style="margin-bottom: 20px;">
+            <div class="thumbnail" style="border: 1px solid #ddd; border-radius: 4px; padding: 10px; text-align: center; height: 400px;">
+
+                @* --- 1. Hiển thị ảnh sản phẩm --- *@
+                <a href="#">
+                    @* Sửa link này thành trang chi tiết sau *@
+                    @if (!string.IsNullOrEmpty(item.ProductImage))
+                    {
+                        <img src="@Url.Content(item.ProductImage)" alt="@item.ProductName" style="width: 100%; height: 200px; object-fit: contain;">
+                    }
+                    else
+                    {
+                        @* Ảnh placeholder nếu không có ảnh *@
+                        <img src="https://via.placeholder.com/200x200.png?text=No+Image" alt="No Image" style="width: 100%; height: 200px; object-fit: contain;">
+                    }
+                </a>
+
+                <div class="caption">
+                    @* --- 2. Tên sản phẩm --- *@
+                    <h4 style="height: 40px; overflow: hidden; font-weight: bold;">
+                        <a href="#">@item.ProductName</a>
+                    </h4>
+
+                    @* --- 3. Giá tiền --- *@
+                    <p style="font-size: 1.3em; color: #c00;">
+                        <strong>@string.Format("{0:N0}", item.ProductPrice) đ</strong>
+                    </p>
+
+                    @* --- 4. Các nút bấm --- *@
+                    <p>
+                        <a href="#" class="btn btn-primary" role="button">Thêm vào giỏ</a>
+                        @*<a href="#" class="btn btn-default" role="button">Xem chi tiết</a>*@
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

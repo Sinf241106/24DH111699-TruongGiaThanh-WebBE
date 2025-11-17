@@ -1,0 +1,51 @@
+﻿/* Set padding to keep content from hitting the edges */
+.body-content {
+    margin-top: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+    will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+
+/* --- (MỚI) CSS CHO THANH CUỘN NGANG SẢN PHẨM --- */
+
+/* Lớp bọc bên ngoài, tạo thanh cuộn */
+.horizontal-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto; /* Đây là mấu chốt: tạo thanh cuộn ngang */
+    overflow-y: hidden; /* Ẩn thanh cuộn dọc */
+    padding: 15px 0;
+}
+
+/* Lớp chứa tất cả sản phẩm */
+.items-container {
+    white-space: nowrap; /* Đây là mấu chốt: giữ cho tất cả item trên một hàng */
+}
+
+/* Từng card sản phẩm */
+.product-card-inline {
+    display: inline-block; /* Giúp các card xếp ngang */
+    width: 280px; /* Chiều rộng cố định cho mỗi card (bạn có thể thay đổi) */
+    white-space: normal; /* Cho phép nội dung bên trong card xuống dòng bình thường */
+    vertical-align: top;
+    margin-right: 15px; /* Khoảng cách giữa các card */
+}
+
+    /* Đảm bảo thumbnail bên trong card mới */
+    .product-card-inline .thumbnail {
+        height: 400px; /* Giữ chiều cao đồng đều */
+        margin-bottom: 0;
+    }

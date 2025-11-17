@@ -1,0 +1,33 @@
+﻿@model WebApplication1.Models.Category
+
+@{
+    ViewBag.Title = "Delete";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; // <-- SỬA LẠI THÀNH DÒNG NÀY
+}
+...
+<h2 class="bg-success" style="padding:10px">XÓA DANH MỤC</h2>
+
+<h3 class="alert-danger" style="padding:10px">Bạn thực sự muốn xóa danh mục này à?</h3>
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            Tên danh mục
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CategoryName)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Xóa" class="btn btn-danger" /> |
+            @Html.ActionLink("Quay lại danh sách", "Index")
+        </div>
+    }
+</div>

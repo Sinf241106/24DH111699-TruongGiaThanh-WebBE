@@ -1,0 +1,36 @@
+﻿@{
+    ViewBag.Title = "Đặt hàng thành công";
+}
+
+<style>
+    .success-container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 40px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        text-align: center;
+    }
+
+    .success-icon {
+        font-size: 4em;
+        color: #28a745; /* Màu xanh lá */
+    }
+</style>
+
+<div class="success-container">
+    <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <h2 style="font-weight: 700; margin-top: 20px;">Đặt hàng thành công!</h2>
+    <p class="lead" style="margin-top: 15px;">
+        Cảm ơn bạn đã mua sắm tại SinfStore. Chúng tôi sẽ liên hệ với bạn để xác nhận đơn hàng sớm nhất.
+    </p>
+    <hr />
+    <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg">
+        Tiếp tục mua sắm
+    </a>
+</div>
+
+@* (File _Layout của bạn đã có Font Awesome nên icon sẽ hiển thị) *@

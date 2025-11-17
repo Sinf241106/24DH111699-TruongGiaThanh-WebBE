@@ -1,0 +1,344 @@
+﻿@model List<WebApplication1.Models.CartItem>
+
+@{
+    ViewBag.Title = "Giỏ Hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Tính tổng tiền
+    decimal totalAmount = 0;
+    if (Model != null && Model.Any())
+    {
+        totalAmount = Model.Sum(item => item.TotalPrice);
+    }
+}
+
+@* --- CSS CHO TRANG GIỎ HÀNG --- *@
+<style>
+    .cart-page-container {
+        background-color: #fff;
+        padding: 30px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+        .cart-page-container h2 {
+            font-weight: 700;
+            font-size: 2.5em; /* Làm chữ "GIỎ HÀNG" to hơn */
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+    .cart-table {
+        width: 100%;
+        border-collapse: collapse; /* Gộp viền table */
+    }
+
+        .cart-table th {
+            background-color: #f8f9fa;
+            color: #555;
+            font-weight: 600;
+            padding: 15px;
+            text-align: left;
+        }
+
+            /* Căn giữa các cột Số lượng, Đơn giá, Thành tiền */
+            .cart-table th.text-center {
+                text-align: center;
+            }
+
+        .cart-table td.text-center {
+            text-align: center;
+        }
+
+        .cart-table td {
+            padding: 20px 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle; /* Căn giữa theo chiều dọc */
+        }
+
+    .cart-product-info {
+        display: flex;
+        align-items: center;
+    }
+
+        .cart-product-info img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 15px;
+            border: 1px solid #eee;
+        }
+
+        .cart-product-info .product-name {
+            font-weight: 600;
+            color: #333;
+            text-decoration: none;
+        }
+
+            .cart-product-info .product-name:hover {
+                color: #007bff;
+            }
+
+    /* --- (MỚI) CSS CHO NÚT XÓA --- */
+    .btn-delete {
+        color: #dc3545; /* Đổi màu thùng rác thành màu đỏ */
+        font-size: 1.3em;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+        .btn-delete:hover {
+            color: #a71d2a; /* Màu đỏ đậm hơn khi hover */
+        }
+
+    /* --- CSS CHO Ô SỐ LƯỢNG (Giống ảnh mẫu) --- */
+    .quantity-input-cart {
+        display: flex;
+        justify-content: center;
+    }
+
+        .quantity-input-cart .btn-qty-cart {
+            width: 30px;
+            height: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: 1px solid #ccc;
+            background-color: #f7f7f7;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .quantity-input-cart .qty-input-cart {
+            width: 40px;
+            height: 30px;
+            text-align: center;
+            font-size: 1em;
+            font-weight: bold;
+            border: 1px solid #ccc;
+            border-left: none;
+            border-right: none;
+            -moz-appearance: textfield;
+        }
+            /* Tắt mũi tên của input[type=number] */
+            .quantity-input-cart .qty-input-cart::-webkit-outer-spin-button,
+            .quantity-input-cart .qty-input-cart::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+
+    /* --- CỘT TỔNG TIỀN BÊN PHẢI --- */
+    .cart-summary {
+        background-color: #f8f9fa;
+        padding: 25px;
+        border-radius: 8px;
+    }
+
+        .cart-summary h3 {
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.1em;
+        margin-bottom: 15px;
+    }
+
+    .summary-total {
+        font-size: 1.4em;
+        font-weight: 700;
+        color: #d9534f; /* Màu đỏ */
+    }
+
+    .btn-checkout {
+        width: 100%;
+        font-size: 1.2em;
+        font-weight: 600;
+        padding: 12px;
+    }
+
+    .btn-continue-shopping {
+        background-color: #f0ad4e; /* Màu cam */
+        border-color: #eea236;
+        color: #fff;
+    }
+
+        .btn-continue-shopping:hover {
+            background-color: #ec971f;
+            border-color: #d58512;
+            color: #fff;
+        }
+</style>
+
+@* --- NỘI DUNG TRANG GIỎ HÀNG --- *@
+<div class="container cart-page-container">
+    <h2>GIỎ HÀNG</h2>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">Giỏ hàng của bạn đang trống.</div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Sản phẩm</th>
+                            <th class="text-center" style="width: 20%;">Số lượng</th>
+                            <th class="text-center" style="width: 15%;">Đơn giá</th>
+                            <th class="text-center" style="width: 15%;">Thành tiền</th>
+
+                            @* --- (MỚI) THÊM CỘT TIÊU ĐỀ XÓA --- *@
+                            <th class="text-center" style="width: 5%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="cart-product-info">
+                                        <a href="@Url.Action("Details", "Products", new { id = item.ProductID })">
+                                            <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/80x80.png?text=No+Image")" alt="@item.ProductName" />
+                                        </a>
+                                        <div>
+                                            <a href="@Url.Action("Details", "Products", new { id = item.ProductID })" class="product-name">
+                                                @item.ProductName
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="quantity-input-cart">
+                                        <button type="button" class="btn-qty-cart btn-minus" data-id="@item.ProductID">-</button>
+                                        <input type="number" class="qty-input-cart" id="qty-@item.ProductID" value="@item.Quantity" min="1" max="99" />
+                                        <button type="button" class="btn-qty-cart btn-plus" data-id="@item.ProductID">+</button>
+                                    </div>
+                                </td>
+                                <td class="text-center">@String.Format("{0:N0}", item.ProductPrice)</td>
+                                <td class="text-center" id="total-@item.ProductID">@String.Format("{0:N0}", item.TotalPrice)</td>
+
+                                @* --- (MỚI) THÊM NÚT XÓA (THÙNG RÁC) --- *@
+                                <td class="text-center">
+                                    @Html.ActionLink(" ", "RemoveFromCart", "ShoppingCart", new { id = item.ProductID }, new { @class = "fas fa-trash-alt btn-delete", title = "Xóa" })
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @* NÚT "TIẾP TỤC MUA HÀNG" *@
+                <a href="@Url.Action("Index", "Home")" class="btn btn-continue-shopping" style="margin-top: 20px;">
+                    <i class="fas fa-arrow-left"></i> Tiếp tục mua hàng
+                </a>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="cart-summary">
+                    <h3>Tổng giá trị</h3>
+                    <div class="summary-row">
+                        <span>Tổng cộng:</span>
+                        <span class="summary-total" id="cart-total-amount">@String.Format("{0:N0} đ", totalAmount)</span>
+                    </div>
+                    <hr />
+                    @* NÚT "MUA HÀNG" *@
+                <a href="@Url.Action("Checkout", "ShoppingCart")" class="btn btn-danger btn-checkout">
+                    Mua hàng
+                </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section scripts {
+    @* --- (QUAN TRỌNG) THÊM ICON THÙNG RÁC VÀ MŨI TÊN --- *@
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <script>
+        // Đợi cho toàn bộ trang tải xong
+        $(document).ready(function () {
+
+            // 1. Khi bấm nút TĂNG (+)
+            $('.btn-plus').click(function () {
+                var productId = $(this).data('id'); // Lấy ID sản phẩm từ nút
+                var quantityInput = $('#qty-' + productId); // Tìm ô input tương ứng
+                var newQuantity = parseInt(quantityInput.val()) + 1; // Tăng số lượng lên 1
+
+                // Gọi hàm AJAX để cập nhật
+                updateCart(productId, newQuantity);
+            });
+
+            // 2. Khi bấm nút GIẢM (-)
+            $('.btn-minus').click(function () {
+                var productId = $(this).data('id'); // Lấy ID sản phẩm
+                var quantityInput = $('#qty-' + productId); // Tìm ô input tương ứng
+                var newQuantity = parseInt(quantityInput.val()) - 1; // Giảm số lượng đi 1
+
+                if (newQuantity > 0) {
+                    // Nếu số lượng vẫn > 0, thì cập nhật
+                    updateCart(productId, newQuantity);
+                } else {
+                    // Nếu số lượng là 0, bạn có thể hỏi "Bạn muốn xóa?"
+                    // Tạm thời chúng ta sẽ không làm gì nếu người dùng cố giảm dưới 1
+                }
+            });
+
+            // 3. Khi người dùng TỰ GÕ SỐ vào ô input
+            $('.qty-input-cart').on('change', function () {
+                // Tìm ID sản phẩm từ nút (+) hoặc (-) gần nhất
+                var productId = $(this).closest('.quantity-input-cart').find('.btn-plus').data('id');
+                var newQuantity = parseInt($(this).val());
+
+                // Đảm bảo số là hợp lệ
+                if (isNaN(newQuantity) || newQuantity < 1) {
+                    newQuantity = 1;
+                    $(this).val(1); // Sửa lại ô input nếu gõ số < 1
+                }
+
+                updateCart(productId, newQuantity);
+            });
+
+
+            // --- HÀM AJAX GỬI DỮ LIỆU ĐẾN CONTROLLER ---
+            function updateCart(id, quantity) {
+                $.ajax({
+                    // Đường dẫn đến hàm UpdateCart trong ShoppingCartController
+                    // Hàm [HttpPost] public JsonResult UpdateCart(int id, int quantity)
+                    url: '@Url.Action("UpdateCart", "ShoppingCart")',
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        quantity: quantity
+                    },
+                    success: function (result) {
+                        if (result.success) {
+                            // Cập nhật thành công!
+                            // Cách đơn giản nhất: Tải lại toàn bộ trang giỏ hàng
+                            location.reload();
+
+                            // (Cách nâng cao: Cập nhật "Thành tiền" và "Tổng cộng"
+                            // mà không cần tải lại trang, chúng ta sẽ làm sau)
+                        } else {
+                            alert("Có lỗi xảy ra khi cập nhật giỏ hàng.");
+                        }
+                    },
+                    error: function () {
+                        alert("Không thể kết nối đến máy chủ để cập nhật giỏ hàng.");
+                    }
+                });
+            }
+
+        });
+    </script>
+}

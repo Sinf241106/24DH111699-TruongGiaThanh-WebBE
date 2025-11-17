@@ -1,0 +1,190 @@
+﻿@model WebApplication1.Models.Customer
+
+@{
+    ViewBag.Title = "Xác nhận đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Lấy giỏ hàng từ Session để tính tổng
+    var cart = (List<WebApplication1.Models.CartItem>)Session["CartSession"];
+    decimal totalAmount = 0;
+    if (cart != null)
+    {
+        totalAmount = cart.Sum(item => item.TotalPrice);
+    }
+    // (MỚI) Lấy voucher nếu có
+    decimal discount = (Session["VoucherDiscount"] as decimal?) ?? 0;
+    decimal finalTotal = totalAmount - discount;
+}
+
+<style>
+    .checkout-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+        .checkout-container h2 {
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+    .info-box {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 5px;
+        border: 1px solid #eee;
+    }
+
+    .total-box {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #c00;
+        text-align: right;
+        margin-top: 20px;
+    }
+
+    /* (MỚI) CSS CHO HÀNG TỔNG TIỀN */
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+
+        .summary-row.total {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #c00; /* Màu đỏ */
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+    #voucherMessage {
+        display: block;
+        margin-top: 5px;
+    }
+</style>
+
+<div class="checkout-container">
+    <h2>Xác nhận đơn hàng</h2>
+
+    @using (Html.BeginForm("Checkout", "ShoppingCart", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-md-7">
+                <h4>Thông tin giao hàng</h4>
+                <div class="info-box">
+                    <p>
+                        <strong>Khách hàng:</strong>
+                        @Html.DisplayFor(model => model.CustomerName)
+                    </p>
+                    <p>
+                        <strong>Email:</strong>
+                        @Html.DisplayFor(model => model.CustomerEmail)
+                    </p>
+                    <p>
+                        <strong>Số điện thoại:</strong>
+                        @Html.DisplayFor(model => model.CustomerPhone)
+                    </p>
+                    <p>
+                        <strong>Địa chỉ giao hàng:</strong>
+                        @Html.DisplayFor(model => model.CustomerAddress)
+                    </p>
+                </div>
+            </div>
+
+            @* --- (ĐÃ SỬA) CỘT TỔNG TIỀN --- *@
+            <div class="col-md-5">
+                <h4>Tổng cộng</h4>
+                <div class="info-box">
+
+                    <div class="summary-row">
+                        <span>Tạm tính:</span>
+                        <span id="subTotal">@String.Format("{0:N0} đ", totalAmount)</span>
+                    </div>
+
+                    <!-- Hàng giảm giá (ban đầu ẩn nếu discount = 0) -->
+                    <div class="summary-row" id="discountRow" style="@(discount == 0 ? "display: none;" : "")">
+                        <span>Giảm giá (20%):</span>
+                        <span id="discountAmount" style="color: green;">- @String.Format("{0:N0} đ", discount)</span>
+                    </div>
+
+                    <div class="summary-row total">
+                        <strong>Thành tiền:</strong>
+                        <strong id="finalTotal">@String.Format("{0:N0} đ", finalTotal)</strong>
+                    </div>
+
+                    <p style="text-align: right; font-size: 0.9em; margin-top: -5px;">(Đã bao gồm VAT)</p>
+
+                    <!-- (MỚI) KHUNG VOUCHER -->
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label class="form-label" for="voucherCode">Mã giảm giá</label>
+                        <div class="input-group">
+                            @* --- (ĐÃ XÓA placeholder="ILoveSinfStore" Ở ĐÂY) --- *@
+                            <input type="text" id="voucherCode" class="form-control">
+                            <button class="btn btn-outline-secondary" type="button" id="btnApplyVoucher">Áp dụng</button>
+                        </div>
+                        <small id="voucherMessage" class="form-text"></small>
+                    </div>
+
+                    <hr />
+                    <input type="submit" value="Xác nhận đặt hàng" class="btn btn-danger btn-lg" style="width: 100%;" />
+                </div>
+            </div>
+            @* --- HẾT SỬA --- *@
+
+        </div>
+    }
+
+    <a href="@Url.Action("Index", "ShoppingCart")" style="margin-top: 20px; display: inline-block;">
+        &laquo; Quay lại giỏ hàng
+    </a>
+</div>
+
+@* --- (MỚI) JAVASCRIPT ĐỂ XỬ LÝ VOUCHER --- *@
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval") @* Giữ validation nếu có *@
+
+    <script>
+    $(document).ready(function() {
+        // Khi người dùng bấm nút "Áp dụng"
+        $('#btnApplyVoucher').click(function () {
+            var code = $('#voucherCode').val(); // Lấy mã gõ vào
+            var msg = $('#voucherMessage');
+
+            // Gửi mã này đến Controller
+            $.ajax({
+                url: '@Url.Action("ApplyVoucher", "ShoppingCart")',
+                type: 'POST',
+                data: { voucherCode: code },
+                success: function (result) {
+                    if (result.success) {
+                        // Nếu thành công (mã đúng)
+                        msg.text(result.message).css('color', 'green');
+
+                        // Cập nhật lại 3 ô giá
+                        $('#discountAmount').text("- " + result.discount + " đ");
+                        $('#discountRow').show(); // Hiện dòng giảm giá
+                        $('#finalTotal').text(result.newTotal + " đ");
+                    } else {
+                        // Nếu thất bại (mã sai)
+                        msg.text(result.message).css('color', 'red');
+
+                        // Reset lại giá (ẩn dòng giảm giá)
+                        $('#discountRow').hide();
+                        $('#finalTotal').text($('#subTotal').text());
+                    }
+                },
+                error: function () {
+                    msg.text('Lỗi kết nối. Vui lòng thử lại.').css('color', 'red');
+                }
+            });
+        });
+    });
+    </script>
+}
