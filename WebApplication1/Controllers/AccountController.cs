@@ -3,7 +3,8 @@ using System.Linq;
 using System.Web.Mvc;
 using WebApplication1.Models;
 using WebApplication1.Models.ViewModel;
-using System.Web.Security; // <-- (MỚI) Thêm thư viện này
+using System.Web.Security;
+using System.Data.Entity;
 
 namespace WebApplication1.Controllers
 {
@@ -17,16 +18,84 @@ namespace WebApplication1.Controllers
             return RedirectToAction("Login");
         }
 
+        // --- HÀM LOGIN (POST) ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(LoginViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = db.Users.FirstOrDefault(
+                    u => u.Username.Equals(model.Username, StringComparison.OrdinalIgnoreCase) &&
+                         u.Password == model.Password
+                );
+
+                if (user != null)
+                {
+                    FormsAuthentication.SetAuthCookie(user.Username, false);
+
+                    var customer = db.Customers.FirstOrDefault(c => c.Username == user.Username);
+                    if (customer != null)
+                    {
+                        Session["FullName"] = customer.CustomerName;
+                        Session["Username"] = customer.Username;
+                        Session["CustomerID"] = customer.CustomerID;
+                    }
+
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
+                }
+            }
+            return View(model);
+        }
+
         // -------------------------------------------------
-        // --- ĐĂNG KÝ ---
+        // --- (ĐÃ SỬA) HÀM XEM ĐƠN HÀNG (BILL) ---
         // -------------------------------------------------
-        // GET: Account/Register
+        // GET: Account/MyOrders
+        public ActionResult MyOrders()
+        {
+            if (Session["CustomerID"] == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            int customerId = (int)Session["CustomerID"];
+
+            // 3. Lấy tất cả đơn hàng của khách hàng này
+            // (ĐÃ SỬA) Thêm OrderByDescending(o => o.OrderDate)
+            // (VÀ SỬA LẠI Include)
+            var myOrders = db.Orders
+                             .Include("OrderDetails.Product")
+                             .Include("Customer")
+                             .Where(o => o.CustomerID == customerId)
+                             .OrderByDescending(o => o.OrderDate) // <-- SẮP XẾP MỚI NHẤT LÊN ĐẦU
+                             .ToList();
+
+            return View(myOrders);
+        }
+
+        // --- CÁC HÀM KHÁC ---
+        public ActionResult Login()
+        {
+            return View();
+        }
+
+        public ActionResult LogOut()
+        {
+            FormsAuthentication.SignOut();
+            Session.Clear();
+            return RedirectToAction("Index", "Home");
+        }
+
         public ActionResult Register()
         {
             return View();
         }
 
-        // POST: Account/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Register(RegisterViewModel model)
@@ -48,7 +117,7 @@ namespace WebApplication1.Controllers
 
                 var newUser = new User();
                 newUser.Username = model.Username;
-                newUser.Password = model.Password; // (Cần mã hóa)
+                newUser.Password = model.Password;
                 newUser.UserRole = "C";
 
                 db.Users.Add(newUser);
@@ -67,70 +136,6 @@ namespace WebApplication1.Controllers
             }
             return View(model);
         }
-
-        // -------------------------------------------------
-        // --- (ĐÃ SỬA) ĐĂNG NHẬP ---
-        // -------------------------------------------------
-        // GET: Account/Login
-        public ActionResult Login()
-        {
-            // Trả về View Login.cshtml
-            return View();
-        }
-
-        // POST: Account/Login (Hàm xử lý khi nhấn nút "Đăng nhập")
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                // 1. Tìm người dùng trong CSDL (bảng User)
-                // (Giả sử bạn chưa mã hóa mật khẩu)
-                var user = db.Users.FirstOrDefault(
-                    u => u.Username.Equals(model.Username, StringComparison.OrdinalIgnoreCase) &&
-                         u.Password == model.Password
-                );
-
-                // 2. Nếu tìm thấy (tài khoản hợp lệ)
-                if (user != null)
-                {
-                    // 3. Tạo "vé" xác thực (Authentication Ticket)
-                    FormsAuthentication.SetAuthCookie(user.Username, false); // false = không nhớ
-
-                    // (Tùy chọn) Lưu thông tin Khách hàng vào Session
-                    var customer = db.Customers.FirstOrDefault(c => c.Username == user.Username);
-                    if (customer != null)
-                    {
-                        Session["FullName"] = customer.CustomerName;
-                        Session["Username"] = customer.Username;
-                    }
-
-                    // 4. Chuyển hướng về trang chủ
-                    return RedirectToAction("Index", "Home");
-                }
-                else
-                {
-                    // 5. Nếu sai, báo lỗi
-                    ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
-                }
-            }
-
-            // Nếu không hợp lệ (lỗi validation) hoặc đăng nhập sai,
-            // trả về View Login kèm thông báo lỗi
-            return View(model);
-        }
-
-        // -------------------------------------------------
-        // --- (MỚI) ĐĂNG XUẤT ---
-        // -------------------------------------------------
-        public ActionResult LogOut()
-        {
-            FormsAuthentication.SignOut(); // Xóa vé
-            Session.Clear(); // Xóa hết Session (như FullName)
-            return RedirectToAction("Index", "Home"); // Về trang chủ
-        }
-
 
         protected override void Dispose(bool disposing)
         {

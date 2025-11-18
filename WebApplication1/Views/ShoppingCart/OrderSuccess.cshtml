@@ -1,5 +1,6 @@
 ﻿@{
     ViewBag.Title = "Đặt hàng thành công";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // (Giữ nguyên Layout)
 }
 
 <style>
@@ -28,9 +29,16 @@
         Cảm ơn bạn đã mua sắm tại SinfStore. Chúng tôi sẽ liên hệ với bạn để xác nhận đơn hàng sớm nhất.
     </p>
     <hr />
-    <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg">
-        Tiếp tục mua sắm
-    </a>
+
+    @* --- (ĐÃ SỬA) THÊM NÚT XEM ĐƠN HÀNG --- *@
+    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+        <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg">
+            Tiếp tục mua sắm
+        </a>
+        <a href="@Url.Action("MyOrders", "Account")" class="btn btn-outline-secondary btn-lg">
+            Xem đơn hàng của tôi
+        </a>
+    </div>
 </div>
 
 @* (File _Layout của bạn đã có Font Awesome nên icon sẽ hiển thị) *@

@@ -1,0 +1,143 @@
+﻿@* (QUAN TRỌNG) Khai báo Model là một danh sách Đơn hàng *@
+@model IEnumerable<WebApplication1.Models.Order>
+
+@{
+    ViewBag.Title = "Đơn hàng của tôi";
+}
+
+<style>
+    .order-history-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+        .order-history-container h2 {
+            font-weight: 700;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+    .order-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+        padding: 0;
+        overflow: hidden; /* Đảm bảo bo góc */
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #f1f1f1;
+        border-bottom: 1px solid #ddd;
+        padding: 10px 15px;
+        font-weight: bold;
+    }
+
+    .order-body {
+        padding: 15px;
+    }
+
+    .order-status-pending {
+        color: #ffc107; /* Màu vàng */
+        font-weight: bold;
+    }
+
+    .order-status-success {
+        color: #28a745; /* Màu xanh lá */
+        font-weight: bold;
+    }
+
+    .order-details-list {
+        list-style: none;
+        padding-left: 0;
+        margin-top: 15px;
+        margin-bottom: 10px;
+        border-top: 1px dashed #ccc;
+        padding-top: 10px;
+    }
+
+        .order-details-list li {
+            font-size: 0.9em;
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+    .order-footer {
+        background-color: #f1f1f1;
+        border-top: 1px solid #ddd;
+        padding: 10px 15px;
+        text-align: right;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+</style>
+
+<div class="order-history-container">
+    <h2>Đơn hàng của tôi</h2>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info" style="text-align: center;">Bạn chưa có đơn hàng nào.</div>
+    }
+    else
+    {
+        foreach (var order in Model)
+        {
+            <div class="order-card">
+                @* --- PHẦN HEADER CỦA BILL --- *@
+                <div class="order-header">
+                    <span>Mã đơn hàng: #@order.OrderID</span>
+                    <span>Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy")</span>
+                    <span class="order-status-@(order.PaymentStatus.Contains("Chưa") ? "pending" : "success")">
+                        @order.PaymentStatus
+                    </span>
+                </div>
+
+                @* --- PHẦN THÂN CỦA BILL --- *@
+                <div class="order-body">
+                    <p style="margin-bottom: 5px;"><strong>Địa chỉ giao hàng:</strong> @order.AddressDelivery</p>
+
+                    <ul class="order-details-list">
+                        @foreach (var detail in order.OrderDetails)
+                        {
+                        <li>
+                            <span>
+                                @detail.Product.ProductName
+                                <small style="color: #555;">(x @detail.Quantity)</small>
+                            </span>
+                            <span>
+                                @String.Format("{0:N0}", detail.Quantity * detail.UnitPrice) đ
+                            </span>
+                        </li>
+                        }
+                    </ul>
+                </div>
+
+                @* --- PHẦN CHÂN CỦA BILL (TỔNG TIỀN) --- *@
+                <div class="order-footer">
+                    <span>Tổng tiền:</span>
+                    <span style="color: #c00;">@String.Format("{0:N0}", order.TotalAmount) đ</span>
+                </div>
+            </div>
+        }
+    }
+
+    @* --- (MỚI) THÊM NÚT TIẾP TỤC MUA SẮM --- *@
+    <hr />
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg">
+            Tiếp tục mua sắm
+        </a>
+    </div>
+    @* --- HẾT NÚT --- *@
+
+</div>
