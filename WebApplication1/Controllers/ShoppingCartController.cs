@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using WebApplication1.Models; // <-- SỬA NAMESPACE MODEL
+using WebApplication1.Models;
 using System.Data.Entity;
 using System.Net;
 
-namespace WebApplication1.Controllers // <-- SỬA NAMESPACE CONTROLLER
+namespace WebApplication1.Controllers
 {
     public class ShoppingCartController : Controller
     {
@@ -22,14 +22,23 @@ namespace WebApplication1.Controllers // <-- SỬA NAMESPACE CONTROLLER
             {
                 cart = new List<CartItem>();
             }
-            // (MỚI) Xóa voucher cũ nếu người dùng quay lại giỏ hàng
+            // Xóa voucher cũ nếu người dùng quay lại giỏ hàng
             Session["VoucherDiscount"] = null;
             return View(cart);
         }
 
-        // (GET) AddToCart
+        // -------------------------------------------------
+        // (GET) AddToCart - ĐÃ SỬA: BẮT BUỘC ĐĂNG NHẬP
+        // -------------------------------------------------
         public ActionResult AddToCart(int id)
         {
+            // [MỚI] Kiểm tra đăng nhập ngay đầu hàm
+            if (Session["Username"] == null)
+            {
+                // Chưa đăng nhập -> Chuyển sang trang Login
+                return RedirectToAction("Login", "Account");
+            }
+
             var cart = (List<CartItem>)Session[CartSession];
             if (cart == null)
             {
@@ -54,10 +63,19 @@ namespace WebApplication1.Controllers // <-- SỬA NAMESPACE CONTROLLER
             return RedirectToAction("Index");
         }
 
-        // (POST) AddToCart
+        // -------------------------------------------------
+        // (POST) AddToCart - ĐÃ SỬA: BẮT BUỘC ĐĂNG NHẬP
+        // -------------------------------------------------
         [HttpPost]
         public ActionResult AddToCart(int id, int quantity)
         {
+            // [MỚI] Kiểm tra đăng nhập ngay đầu hàm
+            if (Session["Username"] == null)
+            {
+                // Chưa đăng nhập -> Chuyển sang trang Login
+                return RedirectToAction("Login", "Account");
+            }
+
             var cart = (List<CartItem>)Session[CartSession];
             if (cart == null)
             {
@@ -115,7 +133,7 @@ namespace WebApplication1.Controllers // <-- SỬA NAMESPACE CONTROLLER
         }
 
         // -------------------------------------------------
-        // --- (MỚI) HÀM KIỂM TRA VOUCHER ---
+        // --- HÀM KIỂM TRA VOUCHER ---
         // -------------------------------------------------
         [HttpPost]
         public JsonResult ApplyVoucher(string voucherCode)
@@ -197,12 +215,11 @@ namespace WebApplication1.Controllers // <-- SỬA NAMESPACE CONTROLLER
             newOrder.CustomerID = customer.CustomerID;
             newOrder.OrderDate = DateTime.Now;
 
-            // --- (ĐÃ SỬA) TÍNH TOÁN TỔNG TIỀN CÓ VOUCHER ---
+            // TÍNH TOÁN TỔNG TIỀN CÓ VOUCHER
             decimal totalAmount = cart.Sum(c => c.TotalPrice);
             // Lấy tiền giảm giá từ Session (nếu có thì dùng, không thì là 0)
             decimal discount = (Session["VoucherDiscount"] as decimal?) ?? 0;
             newOrder.TotalAmount = totalAmount - discount; // Lưu giá cuối cùng
-            // --- HẾT SỬA ---
 
             newOrder.PaymentStatus = "Chưa thanh toán";
             newOrder.AddressDelivery = customer.CustomerAddress;
@@ -225,7 +242,7 @@ namespace WebApplication1.Controllers // <-- SỬA NAMESPACE CONTROLLER
 
             // 6. Xóa giỏ hàng VÀ voucher
             Session[CartSession] = null;
-            Session["VoucherDiscount"] = null; // Xóa voucher sau khi đặt hàng
+            Session["VoucherDiscount"] = null;
 
             // 7. Chuyển đến trang "Đặt hàng thành công"
             return RedirectToAction("OrderSuccess");

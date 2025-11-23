@@ -2,14 +2,23 @@
 
 @{
     ViewBag.Title = "Delete";
-    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; // <-- SỬA LẠI THÀNH DÒNG NÀY
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2>Delete</h2>
+<h2>Xóa sản phẩm</h2>
 
-<h3>Are you sure you want to delete this?</h3>
+@* --- BẮT ĐẦU: PHẦN HIỂN THỊ LỖI (QUAN TRỌNG) --- *@
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Không thể xóa!</strong> @ViewBag.Error
+    </div>
+}
+@* --- KẾT THÚC PHẦN LỖI --- *@
+
+<h3>Bạn có chắc chắn muốn xóa sản phẩm này không?</h3>
 <div>
-    <h4>Product</h4>
+    <h4>Thông tin sản phẩm</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -33,7 +42,7 @@
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.ProductPrice)
+            @string.Format("{0:N0} đ", Model.ProductPrice)
         </dd>
 
         <dt>
@@ -41,11 +50,18 @@
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.ProductImage)
+            @if (!string.IsNullOrEmpty(Model.ProductImage))
+            {
+                <img src="@Url.Content(Model.ProductImage)" style="height: 100px;" />
+            }
+            else
+            {
+                <span>Không có ảnh</span>
+            }
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.Category.CategoryName)
+            Danh mục
         </dt>
 
         <dd>
@@ -53,17 +69,17 @@
         </dd>
 
     </dl>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-actions no-color mt-3">
+        @* Nút xóa màu đỏ *@
+        <input type="submit" value="Xóa ngay" class="btn btn-danger" />
+
+        @* Nút quay lại màu xám *@
+        @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-secondary ms-2" })
     </div>
-
-    @using (Html.BeginForm())
-    {
-        @Html.AntiForgeryToken()
-
-        <div class="form-actions no-color">
-            @* Sửa "btn-default" thành "btn-danger" để có nút màu đỏ (cảnh báo xóa) *@
-            <input type="submit" value="Delete" class="btn btn-danger" /> |
-
-            @* Thêm class "btn btn-secondary" (hoặc btn-light) để nó hiện lên *@
-            @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-secondary" })
-        </div>
-    }
+}

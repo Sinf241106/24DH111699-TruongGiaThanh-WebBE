@@ -4,15 +4,13 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
-using WebApplication1.Models; // <-- SỬA NAMESPACE MODEL
+using WebApplication1.Models;
 using System.IO;
 
-// <-- SỬA NAMESPACE CONTROLLER
 namespace WebApplication1.Areas.Admin.Controllers
 {
     public class ProductsController : Controller
     {
-        // SỬA NAMESPACE CHO KHAI BÁO CONTEXT
         private WebApplication1.Models.MyStoreEntities db = new WebApplication1.Models.MyStoreEntities();
 
         // --- HÀM HELPER ĐỂ LƯU ẢNH AN TOÀN ---
@@ -24,21 +22,14 @@ namespace WebApplication1.Areas.Admin.Controllers
                 {
                     var originalFileName = Path.GetFileName(imageFile.FileName);
                     var uniqueFileName = Guid.NewGuid().ToString() + "_" + originalFileName;
-
-                    // Đảm bảo thư mục Content/Uploads tồn tại
                     var path = Path.Combine(Server.MapPath("~/Content/Uploads"), uniqueFileName);
                     imageFile.SaveAs(path);
                     return "/Content/Uploads/" + uniqueFileName;
                 }
-                catch (Exception)
-                {
-                    return null;
-                }
+                catch (Exception) { return null; }
             }
             return null;
         }
-        // --- KẾT THÚC HÀM HELPER ---
-
 
         public ActionResult Index()
         {
@@ -46,18 +37,11 @@ namespace WebApplication1.Areas.Admin.Controllers
             return View(products.ToList());
         }
 
-        // GET: Admin/Products/Details/5
         public ActionResult Details(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
+            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             Product product = db.Products.Find(id);
-            if (product == null)
-            {
-                return HttpNotFound();
-            }
+            if (product == null) return HttpNotFound();
             return View(product);
         }
 
@@ -67,25 +51,18 @@ namespace WebApplication1.Areas.Admin.Controllers
             return View();
         }
 
-        // POST: Admin/Products/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "ProductID,CategoryID,ProductName,ProductDescription,ProductPrice")] Product product, HttpPostedFileBase ImageFile)
         {
             if (ModelState.IsValid)
             {
-                // Gọi hàm lưu ảnh
                 string imageUrl = SaveImage(ImageFile);
-                if (imageUrl != null)
-                {
-                    product.ProductImage = imageUrl; // Gán đường dẫn vào model
-                }
-
+                if (imageUrl != null) product.ProductImage = imageUrl;
                 db.Products.Add(product);
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
-
             ViewBag.CategoryID = new SelectList(db.Categories, "CategoryID", "CategoryName", product.CategoryID);
             return View(product);
         }
@@ -99,21 +76,14 @@ namespace WebApplication1.Areas.Admin.Controllers
             return View(product);
         }
 
-        // POST: Admin/Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "ProductID,CategoryID,ProductName,ProductDescription,ProductPrice,ProductImage")] Product product, HttpPostedFileBase ImageFile)
         {
             if (ModelState.IsValid)
             {
-                // Gọi hàm lưu ảnh MỚI
                 string newImageUrl = SaveImage(ImageFile);
-                if (newImageUrl != null)
-                {
-                    // Nếu có ảnh mới, cập nhật đường dẫn
-                    product.ProductImage = newImageUrl;
-                }
-
+                if (newImageUrl != null) product.ProductImage = newImageUrl;
                 db.Entry(product).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -122,69 +92,51 @@ namespace WebApplication1.Areas.Admin.Controllers
             return View(product);
         }
 
-        // -----------------------------------------------------------------
-        // --- HÀM DELETE (GET) ĐÃ ĐƯỢC THÊM VÀO ---
-        // -----------------------------------------------------------------
         // GET: Admin/Products/Delete/5
         public ActionResult Delete(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
+            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             Product product = db.Products.Find(id);
-            if (product == null)
-            {
-                return HttpNotFound();
-            }
-            // Trả về View Delete.cshtml để xác nhận xóa
+            if (product == null) return HttpNotFound();
             return View(product);
         }
 
         // -----------------------------------------------------------------
-        // --- HÀM DELETE (POST) ĐÃ ĐƯỢC THÊM VÀO ---
+        // --- ĐÃ SỬA LẠI HÀM NÀY ĐỂ BẮT LỖI XÓA ---
         // -----------------------------------------------------------------
-        // POST: Admin/Products/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
             Product product = db.Products.Find(id);
-
-            // Thêm logic xóa file ảnh khỏi server
-            if (!string.IsNullOrEmpty(product.ProductImage))
+            try
             {
-                try
-                {
-                    // Lấy đường dẫn vật lý (vd: C:\Projects\...\Content\Uploads\image.jpg)
-                    // Chú ý: TrimStart('/') để tránh lỗi Path.Combine
-                    var path = Path.Combine(Server.MapPath("~"), product.ProductImage.TrimStart('/'));
+                // 1. Xóa trong Database trước
+                db.Products.Remove(product);
+                db.SaveChanges(); // Nếu sản phẩm đã bán, lỗi sẽ xảy ra ở dòng này -> nhảy xuống catch
 
+                // 2. Nếu xóa DB thành công thì mới xóa ảnh (để tránh mất ảnh oan)
+                if (!string.IsNullOrEmpty(product.ProductImage))
+                {
+                    var path = Path.Combine(Server.MapPath("~"), product.ProductImage.TrimStart('/'));
                     if (System.IO.File.Exists(path))
                     {
                         System.IO.File.Delete(path);
                     }
                 }
-                catch (Exception)
-                {
-                    // Có thể log lỗi ở đây, nhưng vẫn tiếp tục xóa database
-                }
+                return RedirectToAction("Index");
             }
-
-            db.Products.Remove(product);
-            db.SaveChanges();
-            return RedirectToAction("Index");
+            catch (Exception)
+            {
+                // 3. Nếu có lỗi (do dính khóa ngoại với bảng Order), hiển thị thông báo
+                ViewBag.Error = "Không thể xóa sản phẩm này vì nó đang tồn tại trong đơn hàng!";
+                return View("Delete", product);
+            }
         }
-        // -----------------------------------------------------------------
 
-
-        // Cần thêm hàm Dispose để giải phóng tài nguyên
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            if (disposing) db.Dispose();
             base.Dispose(disposing);
         }
     }

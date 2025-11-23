@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-using WebApplication1.Models; // Đảm bảo using Models
+using WebApplication1.Models; // Đảm bảo tên Project của bạn đúng
+using PagedList;
 using System.Data.Entity;
-using System.Net;
+using System.Collections.Generic; // Cần thêm cái này để dùng List
 
 namespace WebApplication1.Controllers
 {
@@ -13,70 +12,55 @@ namespace WebApplication1.Controllers
     {
         private MyStoreEntities db = new MyStoreEntities();
 
-        // HÀM INDEX (Giữ nguyên như cũ)
-        public ActionResult Index()
+        // --- TRANG CHỦ ---
+        public ActionResult Index(int? page, string searchString, decimal? minPrice, decimal? maxPrice)
         {
-            var viewModel = new HomeViewModel();
-            viewModel.FeaturedProducts = db.Products
-                                            .Include(p => p.Category)
-                                            .OrderBy(p => p.ProductID)
-                                            .Take(6)
-                                            .ToList();
-            viewModel.NewProducts = db.Products
-                                        .Include(p => p.Category)
-                                        .OrderBy(p => p.ProductID)
-                                        .Skip(6)
-                                        .Take(8)
-                                        .ToList();
-            return View(viewModel);
+            // 1. QUERY CHO DANH SÁCH CHÍNH (CÓ PHÂN TRANG)
+            IQueryable<Product> products = db.Products.Include(p => p.Category).OrderByDescending(p => p.ProductID);
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                products = products.Where(p => p.ProductName.Contains(searchString) || p.ProductDescription.Contains(searchString));
+            }
+            if (minPrice.HasValue) products = products.Where(p => p.ProductPrice >= minPrice.Value);
+            if (maxPrice.HasValue) products = products.Where(p => p.ProductPrice <= maxPrice.Value);
+
+            ViewBag.CurrentSearchString = searchString;
+            ViewBag.CurrentMinPrice = minPrice;
+            ViewBag.CurrentMaxPrice = maxPrice;
+
+            // Số lượng sản phẩm ở khung trên (Danh sách chính)
+            int pageSize = 8;
+            int pageNumber = (page ?? 1);
+
+            // 2. QUERY CHO KHUNG MỚI (TOP 10 SẢN PHẨM MỚI NHẤT)
+            // Lấy 10 cái, sắp xếp ID giảm dần -> lưu vào ViewBag
+            ViewBag.NewProducts = db.Products.OrderByDescending(p => p.ProductID).Take(10).ToList();
+
+            return View(products.ToPagedList(pageNumber, pageSize));
         }
 
-
-        // -----------------------------------------------------------------
-        // --- (ĐÃ SỬA) HÀM DETAILS ĐỂ DÙNG VIEWMODEL MỚI ---
-        // -----------------------------------------------------------------
+        // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
         public ActionResult Details(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
+            if (id == null) return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+            Product product = db.Products.Find(id);
+            if (product == null) return HttpNotFound();
 
-            // 1. Tìm sản phẩm chính
-            Product mainProduct = db.Products.Find(id);
-            if (mainProduct == null)
-            {
-                return HttpNotFound(); // Không tìm thấy sản phẩm
-            }
+            var similarProducts = db.Products.Where(p => p.CategoryID == product.CategoryID && p.ProductID != id).Take(4).ToList();
 
-            // 2. Tìm sản phẩm tương tự (ví dụ: 8 sản phẩm cùng danh mục)
-            var similarProducts = db.Products
-                                    .Include(p => p.Category)
-                                    .Where(p => p.CategoryID == mainProduct.CategoryID && p.ProductID != id) // Cùng danh mục, khác chính nó
-                                    .OrderBy(p => p.ProductID)
-                                    .Take(8)
-                                    .ToList();
+            // --- SỬA DÒNG NÀY ---
+            // Đổi Take(4) thành Take(10) để lấy 10 sản phẩm -> Danh sách dài ra -> Sẽ hiện thanh cuộn
+            var bestSelling = db.Products.OrderByDescending(p => p.ProductID).Take(10).ToList();
 
-            // 3. Tìm sản phẩm bán chạy (ví dụ: 10 sản phẩm mới nhất)
-            var bestSellingProducts = db.Products
-                                        .Include(p => p.Category)
-                                        .OrderByDescending(p => p.ProductID) // Lấy sản phẩm mới nhất
-                                        .Take(10) // <-- (ĐÃ SỬA) TĂNG SỐ LƯỢNG SẢN PHẨM LÊN 10
-                                        .ToList();
-
-            // 4. Tạo ViewModel và gán dữ liệu
             var viewModel = new ProductDetailViewModel
             {
-                MainProduct = mainProduct,
+                MainProduct = product,
                 SimilarProducts = similarProducts,
-                BestSellingProducts = bestSellingProducts
+                BestSellingProducts = bestSelling
             };
-
-            // Trả về View "Details.cshtml" kèm theo ViewModel
             return View(viewModel);
         }
-        // -----------------------------------------------------------------
-
 
         public ActionResult About()
         {
@@ -91,11 +75,8 @@ namespace WebApplication1.Controllers
         }
 
         protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+        {   
+            if (disposing) db.Dispose();
             base.Dispose(disposing);
         }
     }

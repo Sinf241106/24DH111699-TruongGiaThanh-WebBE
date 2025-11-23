@@ -1,0 +1,71 @@
+﻿@model IEnumerable<WebApplication1.Models.Customer>
+
+@{
+    ViewBag.Title = "Quản lý khách hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .header-box {
+        background-color: #198754; /* Xanh lá */
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between; /* Đẩy nút sang phải */
+        align-items: center;
+    }
+
+    .table-dark-custom {
+        background-color: #2c3034;
+        color: #fff;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+        .table-dark-custom th {
+            background-color: #212529;
+            border-bottom: 2px solid #444;
+        }
+
+        .table-dark-custom td {
+            border-bottom: 1px solid #444;
+            vertical-align: middle;
+        }
+</style>
+
+<div class="header-box">
+    <h3 style="margin:0;">DANH SÁCH KHÁCH HÀNG</h3>
+
+    @* --- NÚT BẤM ĐỂ CHẠY CODE C# THÊM 3 BẠN VÀO --- *@
+    <a href="@Url.Action("AutoInsert", "Customers")" class="btn btn-warning" style="font-weight:bold;">
+        <i class="fas fa-plus-circle"></i> Bấm vào đây để thêm nhóm mình
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-dark-custom table-hover">
+        <thead>
+            <tr>
+                <th>Tài khoản (MSSV)</th>
+                <th>Họ và Tên</th>
+                <th>Số điện thoại</th>
+                <th>Email</th>
+                <th>Địa chỉ</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><span class="badge bg-info text-dark">@item.Username</span></td>
+                    <td style="font-weight:bold; color:#ffc107;">@item.CustomerName</td>
+                    <td>@item.CustomerPhone</td>
+                    <td>@item.CustomerEmail</td>
+                    <td>@item.CustomerAddress</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
