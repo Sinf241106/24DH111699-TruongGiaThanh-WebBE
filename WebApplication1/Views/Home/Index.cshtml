@@ -6,71 +6,59 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var listNewProducts = ViewBag.NewProducts as List<WebApplication1.Models.Product>;
+    var listCheapProducts = ViewBag.CheapProducts as List<WebApplication1.Models.Product>;
 
-    // --- LOGIC MỚI: KIỂM TRA XEM CÓ ĐANG TÌM KIẾM KHÔNG? ---
-    // Nếu có từ khóa HOẶC có chọn giá -> isSearching = true
     bool isSearching = !String.IsNullOrEmpty(ViewBag.CurrentSearchString)
-                       || ViewBag.CurrentMinPrice != null
-                       || ViewBag.CurrentMaxPrice != null;
+                        || ViewBag.CurrentMinPrice != null
+                        || ViewBag.CurrentMaxPrice != null;
 }
 
 <style>
     /* --- CSS GIỮ NGUYÊN NHƯ CŨ --- */
-    .hero-banner {
-        position: relative;
-        background-image: url('https://images.unsplash.com/photo-1505686994434-e33f7ab23e8f');
-        background-size: cover;
-        background-position: center;
-        height: 350px;
+    #heroCarousel {
+        margin-bottom: 30px;
         border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .carousel-item {
+        height: 380px;
+        background-color: #333;
+    }
+
+        .carousel-item img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+        }
+
+    .carousel-caption {
+        bottom: 0;
+        top: 0;
         display: flex;
-        align-items: center;
+        flex-direction: column;
         justify-content: center;
-        color: white;
-        text-align: center;
-        margin-bottom: 30px;
+        align-items: center;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
     }
 
-        .hero-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-        }
-
-    .hero-content {
-        position: relative;
-        z-index: 1;
+    .btn-slider {
+        background-color: #ffc107;
+        color: #333;
+        font-weight: bold;
+        padding: 12px 35px;
+        border-radius: 50px;
+        text-decoration: none;
+        border: 2px solid #ffc107;
     }
 
-        .hero-content h1 {
-            font-size: 2.5em;
-            font-weight: 700;
+        .btn-slider:hover {
+            background-color: transparent;
+            color: #ffc107;
         }
 
-        .hero-content .btn-start {
-            background-color: #ffc107;
-            color: #333;
-            font-weight: 600;
-            padding: 10px 25px;
-            border-radius: 50px;
-            text-decoration: none;
-        }
-
-    .search-bar-container {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 30px;
-        border: 1px solid #eee;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    /* Scrollbar */
     .scrolling-wrapper {
         display: flex;
         flex-wrap: nowrap;
@@ -78,33 +66,34 @@
         gap: 20px;
         padding-bottom: 20px;
         -webkit-overflow-scrolling: touch;
+        padding-right: 20px;
     }
 
         .scrolling-wrapper::-webkit-scrollbar {
-            height: 6px;
+            height: 8px;
         }
 
         .scrolling-wrapper::-webkit-scrollbar-track {
             background: #f1f1f1;
+            border-radius: 4px;
         }
 
         .scrolling-wrapper::-webkit-scrollbar-thumb {
             background: #ccc;
-            border-radius: 10px;
+            border-radius: 4px;
         }
 
             .scrolling-wrapper::-webkit-scrollbar-thumb:hover {
                 background: #888;
             }
 
-    /* Product Card */
     .product-card {
         flex: 0 0 auto;
-        width: 260px;
+        width: 240px;
     }
 
         .product-card .thumbnail {
-            height: 400px;
+            height: 380px;
             border: 1px solid #eee;
             border-radius: 8px;
             padding: 10px;
@@ -113,17 +102,17 @@
             flex-direction: column;
             justify-content: space-between;
             background: #fff;
+            transition: box-shadow 0.3s;
         }
 
             .product-card .thumbnail:hover {
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                transform: translateY(-3px);
-                transition: all 0.3s ease;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+                transform: translateY(-2px);
             }
 
         .product-card img {
             width: 100%;
-            height: 180px;
+            height: 160px;
             object-fit: contain;
             margin-bottom: 10px;
         }
@@ -153,7 +142,16 @@
         margin-bottom: 20px;
         border-left: 5px solid #28a745;
         padding-left: 15px;
-        margin-top: 20px;
+        margin-top: 30px;
+        text-transform: uppercase;
+    }
+
+    .search-bar-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border: 1px solid #eee;
     }
 
     .pagination-container {
@@ -163,37 +161,58 @@
     }
 </style>
 
-@* --- 1. BANNER --- *@
-<div class="hero-banner">
-    <div class="hero-content">
-        <h1>SinfStore - Mua sắm thả ga</h1>
-        <br>
-        <a href="#main-content" class="btn-start">Khám phá ngay</a>
+@* --- BANNER SLIDER --- *@
+<div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
     </div>
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=1200&q=80" class="d-block w-100" alt="Banner 1">
+            <div class="carousel-caption">
+                <h1 style="color:white; text-shadow: 2px 2px 8px #000;">SinfStore - Thế Giới Sách</h1>
+                <a href="#new-arrivals" class="btn-slider">Xem sách mới</a>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <img src="https://images.unsplash.com/photo-1507842217121-9d59754dbc8e?auto=format&fit=crop&w=1200&q=80" class="d-block w-100" alt="Banner 2">
+            <div class="carousel-caption">
+                <h1 style="color:white; text-shadow: 2px 2px 8px #000;">Tri thức là sức mạnh</h1>
+                <a href="#all-products" class="btn-slider">Mua ngay</a>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80" class="d-block w-100" alt="Banner 3">
+            <div class="carousel-caption">
+                <h1 style="color:white; text-shadow: 2px 2px 8px #000;">Khuyến mãi mùa thi</h1>
+                <a href="#cheap-books" class="btn-slider">Săn Deal</a>
+            </div>
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
 </div>
 
-@* --- 2. THANH TÌM KIẾM --- *@
+@* --- TÌM KIẾM --- *@
 <div class="search-bar-container" id="main-content">
     @using (Html.BeginForm("Index", "Home", FormMethod.Get, new { @class = "row g-3" }))
     {
         <div class="row">
-            <div class="col-md-4"><input type="text" name="searchString" class="form-control" placeholder="Nhập tên..." value="@ViewBag.CurrentSearchString"></div>
+            <div class="col-md-4"><input type="text" name="searchString" class="form-control" placeholder="Nhập tên sách..." value="@ViewBag.CurrentSearchString"></div>
             <div class="col-md-3"><input type="number" name="minPrice" class="form-control" placeholder="Giá thấp nhất" value="@ViewBag.CurrentMinPrice"></div>
             <div class="col-md-3"><input type="number" name="maxPrice" class="form-control" placeholder="Giá cao nhất" value="@ViewBag.CurrentMaxPrice"></div>
-            <div class="col-md-2"><button type="submit" class="btn btn-primary w-100" style="width: 100%">Tìm kiếm</button></div>
+            <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Tìm kiếm</button></div>
         </div>
     }
 </div>
 
-@* ================================================= *@
-@* KHUNG 1: SẢN PHẨM MỚI (TOP 10) *@
-@* LOGIC: CHỈ HIỆN KHI KHÔNG TÌM KIẾM (!isSearching) *@
-@* ================================================= *@
-
 @if (!isSearching)
 {
+    @* --- BOX 1: SÁCH MỚI --- *@
     <div id="new-arrivals">
-        <h3 class="section-title">✨ Sản phẩm mới về (Top 10)</h3>
+        <h3 class="section-title"> Sách mới về (Top 10)</h3>
         @if (listNewProducts != null && listNewProducts.Count > 0)
         {
             <div class="scrolling-wrapper">
@@ -202,45 +221,77 @@
                     <div class="product-card">
                         <div class="thumbnail">
                             <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">
-                                <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/200")">
+                                <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/200?text=No+Image")" alt="@item.ProductName">
                             </a>
                             <div class="caption">
                                 <h4><a href="@Url.Action("Details", "Home", new { id = item.ProductID })">@item.ProductName</a></h4>
                                 <p class="price">@string.Format("{0:N0} đ", item.ProductPrice)</p>
-                                <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = item.ProductID })" class="btn btn-primary w-100">Thêm vào giỏ</a>
+
+                                @* --- NÚT MUA HÀNG LOGIC --- *@
+                                @if (item.IsActive == true)
+                                {
+                                    <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = item.ProductID })" class="btn btn-primary w-100">Thêm vào giỏ</a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-secondary w-100" disabled>Tạm ngưng</button>
+                                }
                             </div>
                         </div>
                     </div>
                 }
             </div>
         }
-        else
+    </div>
+
+    <hr style="margin: 40px 0; border-top: 1px solid #eee;">
+
+    @* --- BOX 2: SÁCH GIÁ TỐT --- *@
+    <div id="cheap-books">
+        <h3 class="section-title" style="border-left-color: #dc3545; color: #dc3545;"> Sách Giá Tốt </h3>
+        @if (listCheapProducts != null && listCheapProducts.Count > 0)
         {
-            <p class="text-muted" style="padding-left: 15px">Chưa có sản phẩm mới nào.</p>
+            <div class="scrolling-wrapper">
+                @foreach (var item in listCheapProducts)
+                {
+                    <div class="product-card">
+                        <div class="thumbnail">
+                            <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">
+                                <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/200?text=No+Image")" alt="@item.ProductName">
+                            </a>
+                            <div class="caption">
+                                <h4><a href="@Url.Action("Details", "Home", new { id = item.ProductID })">@item.ProductName</a></h4>
+                                <p class="price" style="color:#dc3545;">@string.Format("{0:N0} đ", item.ProductPrice)</p>
+
+                                @* --- NÚT MUA HÀNG LOGIC --- *@
+                                @if (item.IsActive == true)
+                                {
+                                    <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = item.ProductID })" class="btn btn-primary w-100">Thêm vào giỏ</a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-secondary w-100" disabled>Tạm ngưng</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
         }
     </div>
 
-    <hr style="margin: 40px 0; border-top: 2px solid #eee;">
+    <hr style="margin: 40px 0; border-top: 1px solid #eee;">
 }
 
-
-@* ================================================= *@
-@* KHUNG 2: KẾT QUẢ TÌM KIẾM / TẤT CẢ SẢN PHẨM *@
-@* ================================================= *@
+@* --- BOX 3: TẤT CẢ SÁCH --- *@
 <div id="all-products">
-
-    @* Đổi tên tiêu đề dựa trên việc có tìm kiếm hay không *@
     <h3 class="section-title">
-        @(isSearching ? "Kết quả tìm kiếm" : "Tất cả sản phẩm")
+        @(isSearching ? "Kết quả tìm kiếm" : "Tất cả sách")
     </h3>
 
     @if (Model.Count == 0)
     {
-        <div class="alert alert-warning">
-            Không tìm thấy sản phẩm nào phù hợp với từ khóa "@ViewBag.CurrentSearchString".
-            <br>
-            <a href="@Url.Action("Index", "Home")" class="alert-link">Quay lại trang chủ</a>
-        </div>
+        <div class="alert alert-warning">Không tìm thấy sách nào. <a href="@Url.Action("Index", "Home")">Quay lại</a></div>
     }
     else
     {
@@ -250,21 +301,31 @@
                 <div class="product-card">
                     <div class="thumbnail">
                         <a href="@Url.Action("Details", "Home", new { id = item.ProductID })">
-                            <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/200")">
+                            <img src="@Url.Content(item.ProductImage ?? "https://via.placeholder.com/200?text=No+Image")" alt="@item.ProductName">
                         </a>
                         <div class="caption">
                             <h4><a href="@Url.Action("Details", "Home", new { id = item.ProductID })">@item.ProductName</a></h4>
                             <p class="price">@string.Format("{0:N0} đ", item.ProductPrice)</p>
-                            <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = item.ProductID })" class="btn btn-primary w-100">Thêm vào giỏ</a>
+
+                            @* --- NÚT MUA HÀNG LOGIC --- *@
+                            @if (item.IsActive == true)
+                            {
+                                <a href="@Url.Action("AddToCart", "ShoppingCart", new { id = item.ProductID })" class="btn btn-primary w-100">Thêm vào giỏ</a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary w-100" disabled>Tạm ngưng</button>
+                            }
                         </div>
                     </div>
                 </div>
             }
         </div>
 
-        @* PHÂN TRANG NẰM CUỐI CÙNG *@
+        @* PHÂN TRANG *@
         <div class="pagination-container">
-            Trang @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) / @Model.PageCount <br />
+            Trang @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) / @Model.PageCount
+            <br />
             @Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.CurrentSearchString, minPrice = ViewBag.CurrentMinPrice, maxPrice = ViewBag.CurrentMaxPrice }))
         </div>
     }

@@ -7,16 +7,19 @@
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
 
-    @* --- THÊM DÒNG NÀY ĐỂ HIỂN THỊ ICON --- *@
+    @* --- ICON FONT AWESOME --- *@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 
     @* --- CSS TÙY CHỈNH --- *@
     <style>
         body {
             padding-top: 0 !important;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        /* CSS cho thanh xanh lá */
+        /* CSS Header */
         .top-bar-wrapper {
             background-color: #28a745;
             color: white;
@@ -25,19 +28,15 @@
             padding: 15px 0;
         }
 
-        /* CSS cho thanh đen */
         .navbar.bg-dark {
             background-color: #343a40 !important;
         }
 
-        /* TĂNG CHIỀU CAO THANH NAV ĐEN (bự hơn) */
-        .navbar .navbar-brand,
-        .navbar .nav-link {
+        .navbar .navbar-brand, .navbar .nav-link {
             padding-top: 1.1rem;
             padding-bottom: 1.1rem;
         }
 
-        /* Căn lề phải cho menu */
         .navbar-collapse {
             justify-content: space-between;
         }
@@ -45,9 +44,9 @@
         .body-content {
             padding-top: 15px;
             padding-bottom: 15px;
+            flex: 1;
         }
 
-        /* CSS Cho menu dropdown */
         .dropdown-menu {
             background-color: #343a40;
             border: 1px solid rgba(255,255,255,0.15);
@@ -61,92 +60,269 @@
                 color: #fff;
                 background-color: #495057;
             }
+
+        /* --- (MỚI) CSS CHO SỐ TRÊN GIỎ HÀNG --- */
+        .cart-nav-btn {
+            position: relative; /* Để căn chỉnh số nằm đè lên */
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: 5px;
+            right: -5px; /* Đẩy sang phải */
+            background-color: #ffc107; /* Màu vàng nổi bật */
+            color: #333;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 50%; /* Bo tròn */
+            border: 1px solid #fff;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* --- CSS CHO FOOTER --- */
+        footer {
+            background-color: #fff;
+            padding-top: 50px;
+            border-top: 4px solid #28a745;
+            font-size: 14px;
+            color: #333;
+            margin-top: 50px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .footer-title {
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: #000;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .footer-link-list {
+            list-style: none;
+            padding: 0;
+        }
+
+            .footer-link-list li {
+                margin-bottom: 12px;
+            }
+
+            .footer-link-list a {
+                text-decoration: none;
+                color: #555;
+                transition: all 0.2s;
+            }
+
+                .footer-link-list a:hover {
+                    color: #28a745;
+                    padding-left: 5px;
+                }
+
+        .footer-social-icons a {
+            font-size: 22px;
+            margin-right: 15px;
+            color: #555;
+            transition: color 0.3s;
+        }
+
+            .footer-social-icons a:hover {
+                color: #28a745;
+            }
+
+        .footer-bottom {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+            margin-top: 40px;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            border-top: 1px solid #eee;
+        }
+
+        .logo-text {
+            font-size: 32px;
+            font-weight: 900;
+            color: #333;
+            margin-bottom: 15px;
+            display: inline-block;
+            font-family: Arial, sans-serif;
+        }
     </style>
 </head>
 <body>
 
-    @* --- HEADER (ĐÃ ĐƯỢC ĐƯA RA NGOÀI CONTAINER) --- *@
+    @* --- HEADER --- *@
     <div>
-        @* --- THANH XANH LÁ (Nền full-width) --- *@
         <div class="top-bar-wrapper">
             <div class="container">
-                @* Nội dung bên trong co lại *@
                 Free ship đơn từ 40k, giảm nhiều hơn cùng FREESHIP XTRA
             </div>
         </div>
 
-        @* --- NAV CHÍNH (Nền full-width) --- *@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
             <div class="container">
-                @* Nội dung bên trong co lại *@
                 @Html.ActionLink("SinfStore", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse d-sm-inline-flex">
+                    <ul class="navbar-nav flex-grow-1"></ul>
 
-                    @* --- ĐÃ XÓA "TẤT CẢ SẢN PHẨM" Ở ĐÂY --- *@
-                    @* Vẫn giữ thẻ ul class flex-grow-1 để đẩy menu Login sang phải *@
-                    <ul class="navbar-nav flex-grow-1">
-                    </ul>
-
-                    @* --- LOGIC ĐĂNG NHẬP / ĐĂNG XUẤT (DÙNG SESSION) --- *@
                     <ul class="navbar-nav">
                         <li>@Html.ActionLink("Trang chủ", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
 
                         @if (Session["Username"] != null)
                         {
-                            // NẾU ĐÃ ĐĂNG NHẬP:
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAccount" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    @* Hiển thị tên (lấy từ Session) *@
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAccount" role="button" data-bs-toggle="dropdown">
                                     Xin chào, @Session["FullName"].ToString()!
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownAccount">
-                                    <li>
-                                        @Html.ActionLink("Đăng xuất", "LogOut", "Account", new { area = "" }, new { @class = "dropdown-item" })
-                                    </li>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>@Html.ActionLink("Đăng xuất", "LogOut", "Account", new { area = "" }, new { @class = "dropdown-item" })</li>
                                 </ul>
                             </li>
                         }
                         else
                         {
-                            // NẾU CHƯA ĐĂNG NHẬP:
                             <li class="nav-item">
                                 @Html.ActionLink("Tài khoản", "Index", "Account", new { area = "" }, new { @class = "nav-link" })
                             </li>
                         }
 
-                        <li>@Html.ActionLink("Giỏ hàng", "Index", "ShoppingCart", new { area = "" }, new { @class = "nav-link" })</li>
+                        @* --- (MỚI) ICON GIỎ HÀNG CÓ SỐ --- *@
+                        @{
+                            int cartCount = 0;
+                            // Lấy số lượng từ Session
+                            if (Session["CartSession"] != null)
+                            {
+                                var cart = (List<WebApplication1.Models.CartItem>)Session["CartSession"];
+                                cartCount = cart.Sum(item => item.Quantity);
+                            }
+                        }
+                        <li class="nav-item">
+                            <a href="@Url.Action("Index", "ShoppingCart")" class="nav-link cart-nav-btn">
+                                <i class="fas fa-shopping-cart me-1"></i> Giỏ hàng
+
+                                @* Chỉ hiện số khi > 0 *@
+                                @if (cartCount > 0)
+                                {
+                                    <span class="cart-badge">@cartCount</span>
+                                }
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </div>
-    @* --- HẾT HEADER --- *@
 
-
-    @* --- BỌC PHẦN NỘI DUNG TRONG CONTAINER (ĐỂ "THU VÀO") --- *@
-    <div class="container">
-        <div class="body-content">
-            @RenderBody()
-            <hr />
-            <footer>
-                <p>&copy; @DateTime.Now.Year - SinfStore Application</p>
-            </footer>
-        </div>
+    @* --- BODY --- *@
+    <div class="container body-content">
+        @RenderBody()
     </div>
-    @* --- HẾT .container CHÍNH --- *@
 
+    @* --- FOOTER --- *@
+    <footer>
+        <div class="container">
+            <div class="row">
+
+                @* CỘT 1 *@
+                <div class="col-md-4 col-sm-12 mb-4">
+                    <div class="logo-text">SinfStore<span style="color:#28a745">.vn</span></div>
+                    <p>
+                        <i class="fas fa-map-marker-alt text-success me-2"></i> <strong>Địa chỉ:</strong> 291 Trần Hưng Đạo, TP.HCM<br />
+                        <i class="fas fa-phone-alt text-success me-2"></i> <strong>Hotline:</strong> 0933 490 411<br />
+                        <i class="fas fa-envelope text-success me-2"></i> <strong>Email:</strong> dogadoniss@gmail.com
+                    </p>
+                    <hr style="width: 50%; border-top: 2px solid #28a745;" />
+                    <p style="font-weight: bold; color: #444; margin-bottom: 5px;">Thành viên nhóm thực hiện:</p>
+                    <ul style="list-style: none; padding-left: 0; font-size: 13px; color: #555;">
+                        <li><i class="fas fa-user-check text-success"></i> Trương Gia Thành - 24DH111699</li>
+                        <li><i class="fas fa-user-check text-success"></i> Nguyễn Hoàng Phúc - 24DH111453</li>
+                   
+                    </ul>
+                    <div class="footer-social-icons mt-3">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+
+                @* CỘT 2 *@
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="footer-title">DỊCH VỤ & CHÍNH SÁCH</div>
+                    <ul class="footer-link-list">
+                        <li><a href="#">Điều khoản sử dụng</a></li>
+                        <li><a href="#">Chính sách bảo mật</a></li>
+                        <li><a href="#">Chính sách vận chuyển</a></li>
+                        <li><a href="#">Chính sách đổi trả</a></li>
+                        <li><a href="#">Giới thiệu về SinfStore</a></li>
+                    </ul>
+                </div>
+
+                @* CỘT 3 *@
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="footer-title">HỖ TRỢ KHÁCH HÀNG</div>
+                    <ul class="footer-link-list">
+                        <li><a href="#">Hướng dẫn mua hàng</a></li>
+                        <li><a href="#">Phương thức thanh toán</a></li>
+                        <li><a href="#">Câu hỏi thường gặp (FAQ)</a></li>
+                        <li><a href="#">Gửi yêu cầu hỗ trợ</a></li>
+                        <li><a href="#">Tra cứu đơn hàng</a></li>
+                    </ul>
+                </div>
+
+                @* CỘT 4 *@
+                <div class="col-md-2 col-sm-12">
+                    <div class="footer-title">CÁ NHÂN</div>
+                    <ul class="footer-link-list">
+                        <li><a href="@Url.Action("Login", "Account")">Đăng nhập</a></li>
+                        <li><a href="@Url.Action("Register", "Account")">Đăng ký</a></li>
+                        <li><a href="@Url.Action("MyOrders", "Account")">Đơn hàng của tôi</a></li>
+                    </ul>
+                    <div style="margin-top: 30px;">
+                        <div style="font-weight:bold; margin-bottom:10px;">CHẤP NHẬN THANH TOÁN:</div>
+                        <div style="font-size: 28px;">
+                            <i class="fab fa-cc-visa" style="color: #1a1f71; margin-right: 5px;"></i>
+                            <i class="fab fa-cc-mastercard" style="color: #eb001b; margin-right: 5px;"></i>
+                            <i class="fas fa-money-bill-wave" style="color: #28a745;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* HÀNG DƯỚI *@
+            <div class="row mt-3 pt-3 border-top">
+                <div class="col-12 text-center">
+                    <span style="font-weight:bold; color:#666; margin-right:15px;">ĐỐI TÁC VẬN CHUYỂN:</span>
+                    <i class="fas fa-shipping-fast fa-lg mx-2 text-secondary"></i>
+                    <i class="fas fa-truck fa-lg mx-2 text-secondary"></i>
+                    <i class="fas fa-box-open fa-lg mx-2 text-secondary"></i>
+                </div>
+            </div>
+        </div>
+
+        @* FOOTER BOTTOM *@
+        <div class="footer-bottom">
+            <div class="container">
+                <p>
+                    Giấy chứng nhận Đăng ký Kinh doanh số 0304132047 do Sở Kế hoạch và Đầu tư TP.HCM cấp.<br />
+                    &copy; @DateTime.Now.Year - Bản quyền thuộc về <strong>SinfStore Application</strong>.
+                </p>
+            </div>
+        </div>
+    </footer>
 
     @Scripts.Render("~/bundles/jquery")
-
-    @* --- (ĐÃ SỬA) TẢI TRỰC TIẾP JAVASCRIPT CỦA BOOTSTRAP 5 --- *@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    @* (Đã xóa dòng @Scripts.Render("~/bundles/bootstrap") cũ) *@
-
     @RenderSection("scripts", required: false)
 </body>
 </html>

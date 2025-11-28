@@ -2,43 +2,51 @@
 using System.Linq;
 using System.Web.Mvc;
 using PagedList;
-using WebApplication1.Models; // <-- SỬA NAMESPACE MODEL
-// Đảm bảo bạn có file Context Database tên là MyStoreEntities1 trong Models
+using WebApplication1.Models;
 
-namespace WebApplication1.Areas.Admin.Controllers // <-- SỬA NAMESPACE CONTROLLER
+namespace WebApplication1.Areas.Admin.Controllers
 {
     public class HomeController : Controller
     {
-        // (SỬA LỖI 1: Đổi tên kết nối thành MyStoreEntities1)
-        // SỬA NAMESPACE TRONG KHAI BÁO CONTEXT
         private WebApplication1.Models.MyStoreEntities db = new WebApplication1.Models.MyStoreEntities();
 
-        // --- (ĐÃ SỬA) HÀM INDEX SẼ TỰ ĐỘNG CHUYỂN HƯỚNG ---
+        // ----------------------------------------------------
+        // --- (ĐÃ SỬA) HÀM INDEX: CHUYỂN HƯỚNG VỀ DASHBOARD ---
+        // ----------------------------------------------------
         public ActionResult Index()
         {
-            // Tự động chuyển đến trang Quản lý Sản phẩm
-            // để tránh lỗi "Object reference not set"
-            return RedirectToAction("Index", "Products");
+            // Khi vào Admin, tự động nhảy sang trang Dashboard (Biểu đồ)
+            return RedirectToAction("Dashboard");
         }
-        // --- HẾT SỬA ---
 
-
-        // --- HÀM TÌM KIẾM (ĐÃ SỬA) ---
-        public ActionResult Search(string searchString, int? page) // Thêm 'page'
+        // ----------------------------------------------------
+        // --- (MỚI) HÀM DASHBOARD: CHỨA SỐ LIỆU GIẢ ---
+        // ----------------------------------------------------
+        public ActionResult Dashboard()
         {
-            var products = from p in db.Products
-                           select p;
+            // Số liệu giả định (Bạn có thể sửa số ở đây cho đẹp)
+            ViewBag.TotalRevenue = 4591854925; // Doanh thu
+            ViewBag.TotalOrders = 15;          // Đơn hàng
+            ViewBag.TotalCustomers = 8;       // Khách hàng
+            ViewBag.TotalProducts = 27;        // Sản phẩm
+
+            // Trả về View Dashboard.cshtml mà chúng ta đã tạo
+            return View();
+        }
+
+        // ----------------------------------------------------
+        // --- CÁC HÀM CŨ (GIỮ NGUYÊN ĐỂ KHÔNG LỖI) ---
+        // ----------------------------------------------------
+        public ActionResult Search(string searchString, int? page)
+        {
+            var products = from p in db.Products select p;
 
             if (!String.IsNullOrEmpty(searchString))
             {
-                // (SỬA LỖI 2: Xóa ProductDescription vì nó không tồn tại trong Model)
-                products = products.Where(p =>
-                    p.ProductName.Contains(searchString)
-                );
+                products = products.Where(p => p.ProductName.Contains(searchString));
             }
             ViewBag.SearchKey = searchString;
 
-            // Thêm phân trang cho Search
             int pageSize = 8;
             int pageNumber = (page ?? 1);
             return View("SearchResults", products.OrderBy(p => p.ProductID).ToPagedList(pageNumber, pageSize));

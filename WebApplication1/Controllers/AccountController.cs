@@ -4,7 +4,7 @@ using System.Web.Mvc;
 using WebApplication1.Models;
 using WebApplication1.Models.ViewModel;
 using System.Web.Security;
-using System.Data.Entity;
+using System.Data.Entity; // Bắt buộc có để dùng .Include()
 
 namespace WebApplication1.Controllers
 {
@@ -18,7 +18,14 @@ namespace WebApplication1.Controllers
             return RedirectToAction("Login");
         }
 
-        // --- HÀM LOGIN (POST) ---
+        // ==========================================
+        // 1. ĐĂNG NHẬP (LOGIN)
+        // ==========================================
+        public ActionResult Login()
+        {
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginViewModel model)
@@ -32,14 +39,22 @@ namespace WebApplication1.Controllers
 
                 if (user != null)
                 {
+                    // Tạo cookie xác thực
                     FormsAuthentication.SetAuthCookie(user.Username, false);
 
+                    // Lưu thông tin Customer vào Session để dùng sau này
                     var customer = db.Customers.FirstOrDefault(c => c.Username == user.Username);
                     if (customer != null)
                     {
                         Session["FullName"] = customer.CustomerName;
                         Session["Username"] = customer.Username;
-                        Session["CustomerID"] = customer.CustomerID;
+                        Session["CustomerID"] = customer.CustomerID; // Quan trọng để lấy đơn hàng
+                    }
+
+                    // Nếu có Url trả về (ví dụ từ trang thanh toán chuyển qua)
+                    if (Request.QueryString["ReturnUrl"] != null)
+                    {
+                        return Redirect(Request.QueryString["ReturnUrl"]);
                     }
 
                     return RedirectToAction("Index", "Home");
@@ -52,45 +67,19 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
-        // -------------------------------------------------
-        // --- (ĐÃ SỬA) HÀM XEM ĐƠN HÀNG (BILL) ---
-        // -------------------------------------------------
-        // GET: Account/MyOrders
-        public ActionResult MyOrders()
-        {
-            if (Session["CustomerID"] == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            int customerId = (int)Session["CustomerID"];
-
-            // 3. Lấy tất cả đơn hàng của khách hàng này
-            // (ĐÃ SỬA) Thêm OrderByDescending(o => o.OrderDate)
-            // (VÀ SỬA LẠI Include)
-            var myOrders = db.Orders
-                             .Include("OrderDetails.Product")
-                             .Include("Customer")
-                             .Where(o => o.CustomerID == customerId)
-                             .OrderByDescending(o => o.OrderDate) // <-- SẮP XẾP MỚI NHẤT LÊN ĐẦU
-                             .ToList();
-
-            return View(myOrders);
-        }
-
-        // --- CÁC HÀM KHÁC ---
-        public ActionResult Login()
-        {
-            return View();
-        }
-
+        // ==========================================
+        // 2. ĐĂNG XUẤT (LOGOUT)
+        // ==========================================
         public ActionResult LogOut()
         {
             FormsAuthentication.SignOut();
-            Session.Clear();
+            Session.Clear(); // Xóa sạch session
             return RedirectToAction("Index", "Home");
         }
 
+        // ==========================================
+        // 3. ĐĂNG KÝ (REGISTER)
+        // ==========================================
         public ActionResult Register()
         {
             return View();
@@ -102,12 +91,15 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Kiểm tra trùng username
                 var existingUser = db.Users.FirstOrDefault(u => u.Username == model.Username);
                 if (existingUser != null)
                 {
                     ModelState.AddModelError("Username", "Tên đăng nhập này đã tồn tại.");
                     return View(model);
                 }
+
+                // Kiểm tra trùng email
                 var existingEmail = db.Customers.FirstOrDefault(c => c.CustomerEmail == model.Email);
                 if (existingEmail != null)
                 {
@@ -115,26 +107,51 @@ namespace WebApplication1.Controllers
                     return View(model);
                 }
 
+                // Tạo User mới
                 var newUser = new User();
                 newUser.Username = model.Username;
                 newUser.Password = model.Password;
-                newUser.UserRole = "C";
-
+                newUser.UserRole = "C"; // C = Customer
                 db.Users.Add(newUser);
 
+                // Tạo Customer mới
                 var newCustomer = new Customer();
                 newCustomer.CustomerName = model.FullName;
                 newCustomer.CustomerEmail = model.Email;
                 newCustomer.CustomerPhone = model.Phone;
                 newCustomer.CustomerAddress = model.Address;
                 newCustomer.Username = newUser.Username;
-
                 db.Customers.Add(newCustomer);
+
                 db.SaveChanges();
 
                 return RedirectToAction("Login", "Account");
             }
             return View(model);
+        }
+
+        // ==========================================
+        // 4. XEM LỊCH SỬ ĐƠN HÀNG (MY ORDERS)
+        // ==========================================
+        public ActionResult MyOrders()
+        {
+            // Kiểm tra session, nếu mất session bắt đăng nhập lại
+            if (Session["CustomerID"] == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            int customerId = (int)Session["CustomerID"];
+
+            // Lấy danh sách đơn hàng kèm chi tiết sản phẩm và thông tin khách
+            var myOrders = db.Orders
+                             .Include("OrderDetails.Product") // Load chi tiết sp
+                             .Include("Customer")             // Load thông tin khách (để hiện email/sđt)
+                             .Where(o => o.CustomerID == customerId)
+                             .OrderByDescending(o => o.OrderID) // Đơn mới nhất lên đầu
+                             .ToList();
+
+            return View(myOrders);
         }
 
         protected override void Dispose(bool disposing)

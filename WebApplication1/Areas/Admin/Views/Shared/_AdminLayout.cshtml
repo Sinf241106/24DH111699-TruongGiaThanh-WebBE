@@ -3,8 +3,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Trang Quản Trị</title>
+    <title>@ViewBag.Title - SinfStore Admin</title>
+
+    @* Bootstrap CSS *@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    @* FontAwesome *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
     <style>
         body {
             background-color: #212529;
@@ -42,11 +48,19 @@
             text-decoration: none;
             border-radius: 4px;
             margin-bottom: 5px;
+            transition: all 0.2s;
         }
 
             .admin-sidebar li a:hover {
-                background-color: #333;
+                background-color: #28a745;
                 color: #fff;
+                padding-left: 20px;
+            }
+
+            .admin-sidebar li a i {
+                width: 25px;
+                text-align: center;
+                margin-right: 8px;
             }
 
         .admin-navbar {
@@ -75,9 +89,13 @@
 
     <nav class="navbar navbar-dark bg-dark admin-navbar">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">My Store Admin</a>
+            <a class="navbar-brand" href="@Url.Action("Dashboard", "Home")">
+                <i class="fas fa-user-shield me-2"></i>SinfStore Admin
+            </a>
             <span class="navbar-text">
-                <a href="/" target="_blank" class="link-green">[Xem trang bán hàng]</a>
+                <a href="/" target="_blank" class="link-green">
+                    <i class="fas fa-external-link-alt"></i> [Xem trang bán hàng]
+                </a>
             </span>
         </div>
     </nav>
@@ -85,13 +103,38 @@
     <div class="admin-container">
         <div class="admin-sidebar">
             <ul>
-                <li><a href="@Url.Action("Index", "Categories")">Danh mục</a></li>
-                <li><a href="@Url.Action("Index", "Products")">Sản phẩm</a></li>
+                @* --- 1. THỐNG KÊ (DASHBOARD) --- *@
+                <li>
+                    <a href="@Url.Action("Dashboard", "Home")">
+                        <i class="fas fa-tachometer-alt"></i> Thống kê
+                    </a>
+                </li>
 
-                @* --- ĐÃ XÓA DÒNG "ĐƠN HÀNG" --- *@
+                @* --- 2. QUẢN LÝ ĐƠN HÀNG (MỚI THÊM) --- *@
+                <li>
+                    <a href="@Url.Action("Index", "Orders")">
+                        <i class="fas fa-file-invoice-dollar"></i> Đơn hàng
+                    </a>
+                </li>
 
-                @* --- (QUAN TRỌNG) ĐÃ SỬA LINK KHÁCH HÀNG TẠI ĐÂY --- *@
-                <li><a href="@Url.Action("Index", "Customers")">Khách hàng</a></li>
+                @* --- 3. CÁC MỤC KHÁC --- *@
+                <li>
+                    <a href="@Url.Action("Index", "Categories")">
+                        <i class="fas fa-list"></i> Danh mục
+                    </a>
+                </li>
+
+                <li>
+                    <a href="@Url.Action("Index", "Products")">
+                        <i class="fas fa-box"></i> Sản phẩm
+                    </a>
+                </li>
+
+                <li>
+                    <a href="@Url.Action("Index", "Customers")">
+                        <i class="fas fa-users"></i> Khách hàng
+                    </a>
+                </li>
             </ul>
         </div>
 

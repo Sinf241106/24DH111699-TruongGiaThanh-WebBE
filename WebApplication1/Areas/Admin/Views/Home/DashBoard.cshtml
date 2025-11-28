@@ -1,0 +1,192 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* --- CSS CHO CÁC THẺ THỐNG KÊ (STAT CARDS) --- */
+    .stat-card {
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        height: 120px; /* Chiều cao cố định */
+    }
+
+        .stat-card h5 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-card h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .stat-card .icon-bg {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 3.5rem;
+            opacity: 0.3; /* Icon mờ */
+        }
+
+    /* Màu sắc từng thẻ giống hình */
+    .bg-purple {
+        background: linear-gradient(45deg, #6f42c1, #8e44ad);
+    }
+    /* Doanh thu */
+    .bg-green {
+        background: linear-gradient(45deg, #198754, #2ecc71);
+    }
+    /* Đơn hàng */
+    .bg-blue {
+        background: linear-gradient(45deg, #0d6efd, #3498db);
+    }
+    /* Khách hàng */
+    .bg-orange {
+        background: linear-gradient(45deg, #fd7e14, #f39c12);
+    }
+    /* Sản phẩm */
+
+    /* Card chứa biểu đồ */
+    .chart-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        height: 100%;
+    }
+
+    .chart-title {
+        font-weight: bold;
+        color: #6f42c1; /* Màu tím chủ đạo */
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+</style>
+
+@* --- 1. HÀNG THỐNG KÊ (4 THẺ MÀU) --- *@
+<div class="row">
+    @* Thẻ 1: Doanh thu (Tím) *@
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-purple">
+            <h5>Tổng doanh thu</h5>
+            <h2>@string.Format("{0:N0} đ", ViewBag.TotalRevenue)</h2>
+            <i class="fas fa-money-bill-wave icon-bg"></i>
+        </div>
+    </div>
+
+    @* Thẻ 2: Đơn hàng (Xanh lá) *@
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-green">
+            <h5>Đơn hàng</h5>
+            <h2>@ViewBag.TotalOrders</h2>
+            <i class="fas fa-shopping-cart icon-bg"></i>
+        </div>
+    </div>
+
+    @* Thẻ 3: Khách hàng (Xanh dương) *@
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-blue">
+            <h5>Khách hàng</h5>
+            <h2>@ViewBag.TotalCustomers</h2>
+            <i class="fas fa-users icon-bg"></i>
+        </div>
+    </div>
+
+    @* Thẻ 4: Sản phẩm (Cam) *@
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-orange">
+            <h5>Sản phẩm</h5>
+            <h2>@ViewBag.TotalProducts</h2>
+            <i class="fas fa-box-open icon-bg"></i>
+        </div>
+    </div>
+</div>
+
+@* --- 2. HÀNG BIỂU ĐỒ --- *@
+<div class="row">
+    @* Cột trái: Biểu đồ doanh thu (To hơn) *@
+    <div class="col-md-8 mb-4">
+        <div class="chart-card">
+            <h5 class="chart-title"><i class="fas fa-chart-line"></i> Biểu đồ Doanh thu</h5>
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    @* Cột phải: Biểu đồ tròn (Nhỏ hơn) *@
+    <div class="col-md-4 mb-4">
+        <div class="chart-card">
+            <h5 class="chart-title"><i class="fas fa-chart-pie"></i> Lượng bán theo Danh mục</h5>
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @* Thư viện vẽ biểu đồ *@
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // --- 1. BIỂU ĐỒ DOANH THU (Line/Area Chart) ---
+        var ctx1 = document.getElementById('revenueChart').getContext('2d');
+        var revenueChart = new Chart(ctx1, {
+            type: 'line', // Đường
+            data: {
+                labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    // Dữ liệu giả: Tháng 11 cao vọt giống trong hình của bạn
+                    data: [10000000, 12000000, 11000000, 15000000, 13000000, 18000000, 20000000, 22000000, 25000000, 30000000, 450000000, 50000000],
+                    backgroundColor: 'rgba(111, 66, 193, 0.2)', // Màu tím nhạt nền
+                    borderColor: '#6f42c1', // Viền tím đậm
+                    borderWidth: 2,
+                    fill: true, // Tô màu dưới đường
+                    tension: 0.4 // Đường cong mềm mại
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }, // Ẩn chú thích cho gọn
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // --- 2. BIỂU ĐỒ TRÒN (Doughnut Chart) ---
+        var ctx2 = document.getElementById('categoryChart').getContext('2d');
+        var categoryChart = new Chart(ctx2, {
+            type: 'doughnut', // Bánh donut rỗng ruột
+            data: {
+                labels: ['Tiểu thuyết', 'Truyện tranh', 'Sách giáo khoa', 'Kỹ năng sống'],
+                datasets: [{
+                    data: [45, 25, 20, 10], // Tỷ lệ phần trăm giả định
+                    backgroundColor: [
+                        '#dc3545', // Đỏ (Giống hình)
+                        '#ffc107', // Vàng
+                        '#0d6efd', // Xanh
+                        '#6c757d'  // Xám
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' } // Chú thích nằm dưới
+                }
+            }
+        });
+    </script>
+}

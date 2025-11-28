@@ -1,56 +1,158 @@
 ﻿@model IEnumerable<WebApplication1.Models.Product>
 
 @{
-    ViewBag.Title = "Danh sách Sản phẩm";
+    ViewBag.Title = "Quản lý sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2 class="bg-success" style="padding:10px">DANH SÁCH SẢN PHẨM</h2>
-
-<p>
-    @Html.ActionLink("Thêm mới", "Create", null, new { @class = "btn btn-primary" })
-</p>
-<table class="table table-bordered table-hover">
-    <tr class="bg-success">
-        <th>
-            HÌNH ẢNH
-        </th>
-        <th>
-            TÊN SẢN PHẨM
-        </th>
-        <th>
-            GIÁ TIỀN
-        </th>
-        @* --- ĐÃ XÓA CỘT DANH MỤC Ở ĐÂY --- *@
-        <th></th>
-    </tr>
-
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>
-                @if (!string.IsNullOrEmpty(item.ProductImage))
-                {
-                    <img src="@Url.Content(item.ProductImage)" alt="@item.ProductName" style="width: 100px; object-fit: cover;" />
-                }
-                else
-                {
-                    <span>(Không có ảnh)</span>
-                }
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProductName)
-            </td>
-            <td>
-                @String.Format("{0:N0} đ", item.ProductPrice)
-            </td>
-            @* --- ĐÃ XÓA CỘT DANH MỤC Ở ĐÂY --- *@
-            <td>
-                @Html.ActionLink("Cập nhật", "Edit", new { id = item.ProductID }, new { @class = "btn btn-primary btn-sm" }) |
-                @Html.ActionLink("Chi tiết", "Details", new { id = item.ProductID }, new { @class = "btn btn-info btn-sm" }) |
-                @Html.ActionLink("Xóa", "Delete", new { id = item.ProductID }, new { @class = "btn btn-danger btn-sm" })
-            </td>
-        </tr>
+<style>
+    /* Style cho nhãn trạng thái */
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: bold;
+        text-transform: uppercase;
+        display: inline-block;
+        min-width: 100px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        cursor: pointer;
+        text-decoration: none !important;
+        color: white !important;
     }
 
-</table>
+    .bg-active {
+        background-color: #28a745;
+    }
+    /* Xanh */
+    .bg-inactive {
+        background-color: #6c757d;
+    }
+    /* Xám */
+
+    /* Style cho ảnh sản phẩm nhỏ gọn */
+    .product-img-admin {
+        width: 60px !important;
+        height: 80px !important;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #555;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary text-uppercase border-bottom border-primary pb-2">
+        <i class="fas fa-book"></i> Quản lý sản phẩm
+    </h2>
+    <a href="@Url.Action("Create")" class="btn btn-primary shadow">
+        <i class="fas fa-plus"></i> Thêm sách mới
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                @* --- CỘT HÌNH ẢNH ĐÃ ĐƯỢC THÊM LẠI --- *@
+                <th class="text-center" style="width: 100px;">Hình ảnh</th>
+                <th>Tên sách</th>
+                <th>Giá bán</th>
+                <th class="text-center">Trạng thái (Bấm để đổi)</th>
+                <th class="text-center" style="width: 180px;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    @* --- HIỂN THỊ ẢNH --- *@
+                    <td class="text-center">
+                        @if (!string.IsNullOrEmpty(item.ProductImage))
+                        {
+                            <img src="@Url.Content(item.ProductImage)" class="product-img-admin" alt="@item.ProductName" />
+                        }
+                        else
+                        {
+                            <span class="text-muted small">(No Image)</span>
+                        }
+                    </td>
+
+                    <td style="font-weight: 600;">@item.ProductName</td>
+
+                    <td class="text-danger fw-bold">@string.Format("{0:N0} đ", item.ProductPrice)</td>
+
+                    @* --- TRẠNG THÁI (ĐƠN GIẢN: ĐANG BÁN / ĐÃ ẨN) --- *@
+                    <td class="text-center">
+                        <a href="#" class="btn-toggle text-decoration-none" data-id="@item.ProductID">
+                            @if (item.IsActive == true)
+                            {
+                                <span class="badge-status bg-active">
+                                    <i class="fas fa-check-circle"></i> Đang bán
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-status bg-inactive">
+                                    <i class="fas fa-eye-slash"></i> Đã ẩn
+                                </span>
+                            }
+                        </a>
+                    </td>
+
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm">
+                            <a href="@Url.Action("Edit", new { id = item.ProductID })" class="btn btn-warning" title="Sửa"><i class="fas fa-edit"></i></a>
+                            <a href="@Url.Action("Details", new { id = item.ProductID })" class="btn btn-info" title="Xem"><i class="fas fa-eye"></i></a>
+                            <a href="@Url.Action("Delete", new { id = item.ProductID })" class="btn btn-danger" title="Xóa"><i class="fas fa-trash-alt"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.btn-toggle').click(function (e) {
+                e.preventDefault();
+                var btn = $(this);
+                var id = btn.data('id');
+
+                // Hiệu ứng mờ nhẹ khi bấm
+                btn.css('opacity', '0.6');
+
+                $.ajax({
+                    url: '/Admin/Products/ToggleActive',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (res) {
+                        btn.css('opacity', '1');
+                        if (res.success) {
+                            if (res.isActive) {
+                                btn.html('<span class="badge-status bg-active"><i class="fas fa-check-circle"></i> Đang bán</span>');
+                            } else {
+                                btn.html('<span class="badge-status bg-inactive"><i class="fas fa-eye-slash"></i> Đã ẩn</span>');
+                            }
+                        } else {
+                            alert("Lỗi cập nhật!");
+                        }
+                    },
+                    error: function () {
+                        btn.css('opacity', '1');
+                        alert("Lỗi kết nối!");
+                    }
+                });
+            });
+        });
+    </script>
+}

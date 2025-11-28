@@ -1,0 +1,180 @@
+﻿@{
+    ViewBag.Title = "Thanh toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    decimal finalTotal = ViewBag.FinalTotal;
+    string orderCode = ViewBag.OrderCode;
+
+    // --- CẤU HÌNH SACOMBANK TẠI ĐÂY ---
+    // VietQR nhận diện Sacombank qua mã: "Sacombank" hoặc "STB"
+    string bankId = "Sacombank";
+    string accountNo = "060331792635"; 
+    string accountName = "TRUONG GIA THANH"; 
+}
+<style>
+    .payment-container {
+        max-width: 900px;
+        margin: 30px auto;
+        background: #fff;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .payment-header {
+        background: #343a40;
+        color: white;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .payment-body {
+        padding: 30px;
+        display: flex;
+        gap: 30px;
+    }
+
+    .methods {
+        flex: 1;
+    }
+
+    .summary {
+        flex: 0.7;
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        height: fit-content;
+    }
+
+    /* Card chọn thanh toán */
+    .method-option {
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: 0.2s;
+    }
+
+        .method-option:hover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+
+        .method-option.active {
+            border-color: #007bff;
+            background: #e7f1ff;
+        }
+
+        .method-option input {
+            margin-right: 15px;
+            transform: scale(1.5);
+        }
+
+    /* QR Code */
+    #qr-section {
+        display: none;
+        margin-top: 15px;
+        text-align: center;
+        border: 1px dashed #333;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    .qr-img {
+        width: 100%;
+        max-width: 250px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    .btn-confirm {
+        width: 100%;
+        padding: 12px;
+        background: #d9534f;
+        color: white;
+        border: none;
+        font-size: 1.1em;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+
+        .btn-confirm:hover {
+            background: #c9302c;
+        }
+</style>
+
+<div class="payment-container">
+    <div class="payment-header">
+        <h3>CHỌN HÌNH THỨC THANH TOÁN</h3>
+    </div>
+
+    @using (Html.BeginForm("ConfirmPayment", "ShoppingCart", FormMethod.Post))
+    {
+        <div class="payment-body">
+            <div class="methods">
+                <h4>Hình thức thanh toán</h4>
+
+                <label class="method-option active" id="opt-cod">
+                    <input type="radio" name="paymentMethod" value="COD" checked onchange="showQR(false)">
+                    <span style="flex-grow: 1;">
+                        <strong style="display:block">Thanh toán khi nhận hàng (COD)</strong>
+                        <span class="small text-muted">Trả tiền mặt khi shipper giao tới</span>
+                    </span>
+                </label>
+
+                <label class="method-option" id="opt-banking">
+                    <input type="radio" name="paymentMethod" value="BANKING" onchange="showQR(true)">
+                    <span style="flex-grow: 1;">
+                        <strong style="display:block">Chuyển khoản ngân hàng (QR Code)</strong>
+                        <span class="small text-muted">Quét mã VietQR tự động</span>
+                    </span>
+                </label>
+
+                <div id="qr-section">
+                    <h5 class="text-primary">Quét mã để thanh toán</h5>
+                    <img src="https://img.vietqr.io/image/@(bankId)-@(accountNo)-compact2.png?amount=@((int)finalTotal)&addInfo=@(orderCode)" class="qr-img" />
+
+                    <div style="margin-top: 10px; text-align: left;">
+                        <p><strong>Ngân hàng:</strong> @bankId</p>
+                        <p><strong>Số TK:</strong> @accountNo (@accountName)</p>
+                        <p><strong>Nội dung CK:</strong> <span style="color:red; font-weight:bold">@orderCode</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary">
+                <h4>Đơn hàng: @orderCode</h4>
+                <hr />
+                <div style="display:flex; justify-content:space-between; font-size:1.2em; font-weight:bold; color:#d9534f">
+                    <span>Tổng cộng:</span>
+                    <span>@String.Format("{0:N0} đ", finalTotal)</span>
+                </div>
+                <p style="margin-top:10px; font-size:0.9em"><i>Vui lòng kiểm tra kỹ số tiền trước khi thanh toán.</i></p>
+
+                <button type="submit" class="btn-confirm">HOÀN TẤT ĐẶT HÀNG</button>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    function showQR(isBanking) {
+        // Đổi màu ô được chọn
+        var cod = document.getElementById('opt-cod');
+        var bank = document.getElementById('opt-banking');
+        var qr = document.getElementById('qr-section');
+
+        if (isBanking) {
+            bank.classList.add('active');
+            cod.classList.remove('active');
+            qr.style.display = 'block'; // Hiện QR
+        } else {
+            cod.classList.add('active');
+            bank.classList.remove('active');
+            qr.style.display = 'none'; // Ẩn QR
+        }
+    }
+</script>

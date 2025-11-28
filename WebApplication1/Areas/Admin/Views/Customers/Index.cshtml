@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<WebApplication1.Models.Customer>
 
 @{
-    ViewBag.Title = "Quản lý khách hàng";
+    ViewBag.Title = "Quản lý người dùng";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
@@ -13,7 +13,7 @@
         border-radius: 5px;
         margin-bottom: 20px;
         display: flex;
-        justify-content: space-between; /* Đẩy nút sang phải */
+        justify-content: center; /* Căn giữa tiêu đề vì không còn nút nữa */
         align-items: center;
     }
 
@@ -36,12 +36,12 @@
 </style>
 
 <div class="header-box">
-    <h3 style="margin:0;">DANH SÁCH KHÁCH HÀNG</h3>
+    @* --- ĐÃ ĐỔI TÊN TIÊU ĐỀ --- *@
+    <h3 style="margin:0; text-transform: uppercase; font-weight: bold;">
+        QUẢN LÝ NGƯỜI DÙNG
+    </h3>
 
-    @* --- NÚT BẤM ĐỂ CHẠY CODE C# THÊM 3 BẠN VÀO --- *@
-    <a href="@Url.Action("AutoInsert", "Customers")" class="btn btn-warning" style="font-weight:bold;">
-        <i class="fas fa-plus-circle"></i> Bấm vào đây để thêm nhóm mình
-    </a>
+    @* (ĐÃ XÓA NÚT MÀU VÀNG Ở ĐÂY) *@
 </div>
 
 <div class="table-responsive">

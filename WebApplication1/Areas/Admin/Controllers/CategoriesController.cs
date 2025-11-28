@@ -174,27 +174,19 @@ namespace WebApplication1.Areas.Admin.Controllers
             var category = db.Categories.Find(id);
             if (category == null) return HttpNotFound();
 
-            var relatedProducts = db.Products.Where(p => p.CategoryID == id).ToList();
-            if (relatedProducts.Any())
-            {
-                foreach (var product in relatedProducts)
-                {
-                    var od = db.OrderDetails.Where(x => x.ProductID == product.ProductID);
-                    db.OrderDetails.RemoveRange(od);
+            // --- [MỚI] KIỂM TRA RÀNG BUỘC: KHÔNG CHO XÓA NẾU CÒN SẢN PHẨM ---
+            // Đếm số sản phẩm thuộc danh mục này
+            int productCount = db.Products.Count(p => p.CategoryID == id);
 
-                    try
-                    {
-                        if (!string.IsNullOrEmpty(product.ProductImage))
-                        {
-                            var ppath = Server.MapPath(product.ProductImage);
-                            if (System.IO.File.Exists(ppath)) System.IO.File.Delete(ppath);
-                        }
-                    }
-                    catch { }
-                }
-                db.Products.RemoveRange(relatedProducts);
+            if (productCount > 0)
+            {
+                // Nếu có sản phẩm, báo lỗi và không xóa
+                // Sử dụng TempData để truyền thông báo lỗi sang View Index
+                TempData["Error"] = $"Không thể xóa danh mục '{category.CategoryName}' vì đang có {productCount} sản phẩm thuộc danh mục này. Vui lòng xóa sản phẩm trước.";
+                return RedirectToAction("Index");
             }
 
+            // Nếu không có sản phẩm nào, tiến hành xóa ảnh danh mục (nếu có)
             try
             {
                 if (!string.IsNullOrEmpty(category.ImageUrl))
@@ -205,8 +197,11 @@ namespace WebApplication1.Areas.Admin.Controllers
             }
             catch { }
 
+            // Xóa danh mục
             db.Categories.Remove(category);
             db.SaveChanges();
+
+            TempData["Success"] = "Đã xóa danh mục thành công!";
             return RedirectToAction("Index");
         }
 

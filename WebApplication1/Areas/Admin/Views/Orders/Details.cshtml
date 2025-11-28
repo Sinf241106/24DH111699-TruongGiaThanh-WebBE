@@ -1,0 +1,110 @@
+﻿@model WebApplication1.Models.Order
+
+@{
+    ViewBag.Title = "Chi tiết đơn hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+
+    // --- [MỚI] TÍNH TOÁN TIỀN ---
+    decimal subTotal = 0; // Tiền hàng gốc
+    foreach (var item in Model.OrderDetails)
+    {
+        subTotal += (item.Quantity * item.UnitPrice);
+    }
+
+    decimal finalTotal = Model.TotalAmount; // Tiền khách trả (Database lưu số này)
+    decimal discount = subTotal - finalTotal; // Tiền Voucher = Gốc - Thực trả
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary text-uppercase">
+            <i class="fas fa-file-invoice"></i> Chi tiết đơn hàng #@Model.OrderID
+        </h6>
+        @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-secondary btn-sm shadow-sm" })
+    </div>
+    <div class="card-body">
+        @* --- THÔNG TIN CHUNG --- *@
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5 class="text-success border-bottom pb-2 font-weight-bold">Thông tin khách hàng</h5>
+                <p><strong>Họ tên:</strong> @(Model.Customer != null ? Model.Customer.CustomerName : "Khách vãng lai")</p>
+                <p><strong>Số điện thoại:</strong> @(Model.Customer != null ? Model.Customer.CustomerPhone : "---")</p>
+                <p><strong>Email:</strong> @(Model.Customer != null ? Model.Customer.CustomerEmail : "---")</p>
+            </div>
+            <div class="col-md-6">
+                <h5 class="text-info border-bottom pb-2 font-weight-bold">Thông tin đơn hàng</h5>
+
+                <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+
+                <p>
+                    <strong>Trạng thái:</strong>
+                    @if (Model.PaymentStatus == "Đã thanh toán")
+                    {
+                        <span class="badge bg-success">Đã thanh toán</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">@Model.PaymentStatus</span>
+                    }
+                </p>
+                <p><strong>Địa chỉ giao:</strong> @Model.AddressDelivery</p>
+            </div>
+        </div>
+
+        @* --- DANH SÁCH SẢN PHẨM --- *@
+        <h5 class="font-weight-bold mt-4 mb-3">Danh sách sản phẩm</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th class="text-center" style="width: 100px;">Số lượng</th>
+                        <th class="text-end" style="width: 150px;">Đơn giá</th>
+                        <th class="text-end" style="width: 150px;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        <tr>
+                            <td class="align-middle">@item.Product.ProductName</td>
+                            <td class="text-center align-middle">@item.Quantity</td>
+                            <td class="text-end align-middle">@string.Format("{0:N0} đ", item.UnitPrice)</td>
+                            <td class="text-end align-middle font-weight-bold">@string.Format("{0:N0} đ", item.Quantity * item.UnitPrice)</td>
+                        </tr>
+                    }
+                </tbody>
+
+                @* --- [QUAN TRỌNG] PHẦN TỔNG KẾT TIỀN --- *@
+                <tfoot>
+                    @* 1. Tạm tính *@
+                    <tr>
+                        <td colspan="3" class="text-end">Tạm tính:</td>
+                        <td class="text-end">@string.Format("{0:N0} đ", subTotal)</td>
+                    </tr>
+
+                    @* 2. Voucher (Chỉ hiện nếu có giảm giá) *@
+                    @if (discount > 0)
+                    {
+                        <tr style="background-color: #f0fff4;">
+                            <td colspan="3" class="text-end text-success">
+                                <strong><i class="fas fa-tag"></i> Voucher giảm giá:</strong>
+                            </td>
+                            <td class="text-end text-success fw-bold">
+                                - @string.Format("{0:N0} đ", discount)
+                            </td>
+                        </tr>
+                    }
+
+                    @* 3. Tổng cộng *@
+                    <tr class="bg-light">
+                        <td colspan="3" class="text-end text-danger font-weight-bold" style="font-size: 1.1em;">TỔNG CỘNG:</td>
+                        <td class="text-end text-danger font-weight-bold" style="font-size: 1.3em;">
+                            @string.Format("{0:N0} đ", finalTotal)
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

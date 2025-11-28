@@ -1,143 +1,196 @@
-﻿@* (QUAN TRỌNG) Khai báo Model là một danh sách Đơn hàng *@
-@model IEnumerable<WebApplication1.Models.Order>
+﻿@model IEnumerable<WebApplication1.Models.Order>
 
 @{
-    ViewBag.Title = "Đơn hàng của tôi";
+    ViewBag.Title = "Lịch sử đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
     .order-history-container {
         max-width: 900px;
         margin: 40px auto;
-        padding: 30px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        padding: 20px;
     }
 
-        .order-history-container h2 {
-            font-weight: 700;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
+    .page-title {
+        font-weight: 700;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #eee;
+        color: #333;
+    }
+
+    /* Thẻ từng đơn hàng */
+    .order-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        background-color: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+
+        .order-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-    .order-card {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        background-color: #f9f9f9;
-        padding: 0;
-        overflow: hidden; /* Đảm bảo bo góc */
-    }
-
+    /* Phần đầu của thẻ (Màu xám nhẹ) */
     .order-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 15px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: #f1f1f1;
-        border-bottom: 1px solid #ddd;
-        padding: 10px 15px;
-        font-weight: bold;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
+    .order-id {
+        font-weight: bold;
+        color: #555;
+    }
+
+    .order-date {
+        font-size: 0.9em;
+        color: #777;
+        margin-left: 10px;
+    }
+
+    /* Badge trạng thái */
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+    /* Vàng */
+    .status-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    /* Xanh */
+
+    /* Phần thân */
     .order-body {
-        padding: 15px;
+        padding: 20px;
     }
 
-    .order-status-pending {
-        color: #ffc107; /* Màu vàng */
-        font-weight: bold;
+    .customer-info p {
+        margin-bottom: 5px;
+        font-size: 0.95em;
+        color: #555;
     }
 
-    .order-status-success {
-        color: #28a745; /* Màu xanh lá */
-        font-weight: bold;
-    }
-
-    .order-details-list {
-        list-style: none;
-        padding-left: 0;
+    /* Danh sách sản phẩm */
+    .product-list {
         margin-top: 15px;
-        margin-bottom: 10px;
-        border-top: 1px dashed #ccc;
-        padding-top: 10px;
+        border-top: 1px dashed #ddd;
+        padding-top: 15px;
     }
 
-        .order-details-list li {
-            font-size: 0.9em;
-            padding: 5px 0;
-            display: flex;
-            justify-content: space-between;
-        }
+    .product-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+    }
 
+    /* Phần chân (Tổng tiền) */
     .order-footer {
-        background-color: #f1f1f1;
-        border-top: 1px solid #ddd;
-        padding: 10px 15px;
+        background-color: #fff;
+        border-top: 1px solid #eee;
+        padding: 15px 20px;
         text-align: right;
-        font-size: 1.2em;
+    }
+
+    .total-price {
+        font-size: 1.3em;
         font-weight: bold;
+        color: #d9534f; /* Màu đỏ */
     }
 </style>
 
 <div class="order-history-container">
-    <h2>Đơn hàng của tôi</h2>
+    <h2 class="page-title">Đơn hàng của tôi</h2>
 
     @if (Model == null || !Model.Any())
     {
-        <div class="alert alert-info" style="text-align: center;">Bạn chưa có đơn hàng nào.</div>
+        <div class="alert alert-info text-center" role="alert">
+            <i class="glyphicon glyphicon-info-sign"></i> Bạn chưa có đơn hàng nào.
+            <br />
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-sm mt-2">Mua sắm ngay</a>
+        </div>
     }
     else
     {
         foreach (var order in Model)
         {
             <div class="order-card">
-                @* --- PHẦN HEADER CỦA BILL --- *@
+                @* --- HEADER --- *@
                 <div class="order-header">
-                    <span>Mã đơn hàng: #@order.OrderID</span>
-                    <span>Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy")</span>
-                    <span class="order-status-@(order.PaymentStatus.Contains("Chưa") ? "pending" : "success")">
+                    <div>
+                        <span class="order-id">#DH@(order.OrderID)</span>
+                        <span class="order-date"><i class="glyphicon glyphicon-calendar"></i> @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+
+                    @* Logic hiển thị màu trạng thái *@
+                    @{
+                        bool isPending = order.PaymentStatus.Contains("Chưa") || order.PaymentStatus.Contains("Chờ");
+                        string statusClass = isPending ? "status-pending" : "status-success";
+                    }
+                    <span class="status-badge @statusClass">
                         @order.PaymentStatus
                     </span>
                 </div>
 
-                @* --- PHẦN THÂN CỦA BILL --- *@
+                @* --- BODY --- *@
                 <div class="order-body">
-                    <p style="margin-bottom: 5px;"><strong>Địa chỉ giao hàng:</strong> @order.AddressDelivery</p>
+                    <div class="customer-info">
+                        <p><strong><i class="glyphicon glyphicon-map-marker"></i> Địa chỉ giao:</strong> @order.AddressDelivery</p>
 
-                    <ul class="order-details-list">
+                        @if (order.Customer != null)
+                        {
+                            <p><strong><i class="glyphicon glyphicon-envelope"></i> Email:</strong> @order.Customer.CustomerEmail</p>
+                            <p><strong><i class="glyphicon glyphicon-phone"></i> SĐT:</strong> @order.Customer.CustomerPhone</p>
+                        }
+                    </div>
+
+                    <div class="product-list">
                         @foreach (var detail in order.OrderDetails)
                         {
-                        <li>
-                            <span>
-                                @detail.Product.ProductName
-                                <small style="color: #555;">(x @detail.Quantity)</small>
-                            </span>
-                            <span>
-                                @String.Format("{0:N0}", detail.Quantity * detail.UnitPrice) đ
-                            </span>
-                        </li>
+                            <div class="product-item">
+                                <span>
+                                    <strong>@detail.Product.ProductName</strong>
+                                    <span class="text-muted">x @detail.Quantity</span>
+                                </span>
+                                <span>@String.Format("{0:N0} đ", detail.Quantity * detail.UnitPrice)</span>
+                            </div>
                         }
-                    </ul>
+                    </div>
                 </div>
 
-                @* --- PHẦN CHÂN CỦA BILL (TỔNG TIỀN) --- *@
+                @* --- FOOTER --- *@
                 <div class="order-footer">
-                    <span>Tổng tiền:</span>
-                    <span style="color: #c00;">@String.Format("{0:N0}", order.TotalAmount) đ</span>
+                    <span>Tổng thành tiền:</span>
+                    <span class="total-price">@String.Format("{0:N0} đ", order.TotalAmount)</span>
                 </div>
             </div>
         }
     }
 
-    @* --- (MỚI) THÊM NÚT TIẾP TỤC MUA SẮM --- *@
-    <hr />
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg">
-            Tiếp tục mua sắm
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary">
+            &laquo; Quay lại trang chủ
         </a>
     </div>
-    @* --- HẾT NÚT --- *@
-
 </div>
